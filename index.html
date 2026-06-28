@@ -189,7 +189,7 @@
   .fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;border:.5px solid var(--border);background:var(--bg-card);box-shadow:0 2px 8px rgba(0,0,0,.05);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:1.4rem;text-align:center}
   .fc-back{transform:rotateY(180deg)}
   .fc-word{font-family:'Lora',serif;font-style:italic;font-size:2rem;color:var(--basque);margin-bottom:.5rem}
-  .fc-en{font-size:1.2rem;color:var(--ink)}
+  .fc-en{font-size:1.5rem;color:var(--ink);line-height:1.4}
   .fc-tap{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:.64rem;font-family:'DM Mono',monospace;color:var(--ink-light)}
   .fc-hook{margin-top:.9rem;font-size:.78rem;color:var(--ink-mid);max-width:92%}
   .fc-hook .hook-tag{font-family:'DM Mono',monospace;font-size:.54rem;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:99px;margin-right:6px}
@@ -333,10 +333,14 @@
 
   <!-- FLASHCARDS -->
   <div class="screen" id="screen-flashcards">
+    <div class="dec-toggle" style="margin-bottom:1rem">
+      <button class="dec-opt active" id="fcdir-produce" onclick="setFcDir('produce')">EN → Basque</button>
+      <button class="dec-opt" id="fcdir-recognise" onclick="setFcDir('recognise')">Basque → EN</button>
+    </div>
     <div class="fc-sectionbar" id="fc-sectionbar"></div>
     <div class="fc-stage"><div class="fc-card" id="fc-card" onclick="flipCard()">
-      <div class="fc-face fc-front"><div class="fc-status" id="fc-status-front"></div><div class="fc-word" id="fc-word"></div><div class="fc-tap">tap to flip</div></div>
-      <div class="fc-face fc-back"><div class="fc-status" id="fc-status-back"></div><div class="fc-en" id="fc-en"></div><div class="fc-hook" id="fc-hook"></div></div>
+      <div class="fc-face fc-front"><div class="fc-status" id="fc-status-front"></div><div id="fc-front-text"></div><div class="fc-tap" id="fc-tap-hint">recall, then tap to check</div></div>
+      <div class="fc-face fc-back"><div class="fc-status" id="fc-status-back"></div><div id="fc-back-text"></div><div class="fc-hook" id="fc-hook"></div></div>
     </div></div>
     <textarea class="hook-edit" id="hook-edit" rows="2" placeholder="✎ Add your own memory hook (saved automatically)…" onchange="saveHook()" onclick="event.stopPropagation()"></textarea>
     <div class="fc-controls" style="margin-top:.7rem">
@@ -642,7 +646,7 @@ function nav(s){
   document.getElementById('appbar').classList.toggle('has-back',s!=='home');
   curScreen=s;window.scrollTo(0,0);
   if(s==='phases')renderPhasesList();
-  if(s==='flashcards')renderFlash();
+  if(s==='flashcards'){document.getElementById('fcdir-produce').classList.toggle('active',fcDir==='produce');document.getElementById('fcdir-recognise').classList.toggle('active',fcDir==='recognise');renderFlash();}
   if(s==='build')startBuild();
   if(s==='home')updateHomeProgress();
   if(s==='vocab')updateFcProgText();
@@ -750,10 +754,11 @@ function toolTab(i,btn){document.querySelectorAll('#screen-tools .pill').forEach
 /* ============ FLASHCARDS ============ */
 const SECNAMES={D1:'Dialogue 1',Q:'Quantities',AN:'Any/none',FD:'Food',NF:'Non-food',D2:'Dialogue 2',BM:'Books & music',SH:'Shops & signs'};
 const SECTIONS=['D1','Q','AN','FD','NF','D2','BM','SH'];
-let fcSection='D1',fcIndex=0,fcList=[];
+let fcSection='D1',fcIndex=0,fcList=[],fcDir=(mem.fcDir||'produce');
+function setFcDir(dir){fcDir=dir;mem.fcDir=dir;saveStore();document.getElementById('fcdir-produce').classList.toggle('active',dir==='produce');document.getElementById('fcdir-recognise').classList.toggle('active',dir==='recognise');renderFlash();}
 function renderSectionBar(){const bar=document.getElementById('fc-sectionbar');bar.innerHTML='';SECTIONS.forEach(s=>{const b=document.createElement('button');b.className='fc-secbtn'+(s===fcSection?' active':'');b.textContent=SECNAMES[s];b.onclick=()=>{fcSection=s;fcIndex=0;renderFlash();};bar.appendChild(b);});}
 function cardKey(v){return v.bq+'|'+v.s;}
-function renderFlash(){renderSectionBar();fcList=VOCAB.filter(v=>v.s===fcSection);if(fcIndex>=fcList.length)fcIndex=0;const card=document.getElementById('fc-card');card.classList.remove('flipped');const v=fcList[fcIndex];document.getElementById('fc-word').textContent=v.bq;document.getElementById('fc-en').textContent=v.en;const userHook=mem.hooks[cardKey(v)];let h='';if(v.hk){const tc={link:'tag-link',logic:'tag-logic',hook:'tag-hook'}[v.hk];const tt={link:'real link',logic:'logic',hook:'memory aid'}[v.hk];h+='<div><span class="hook-tag '+tc+'">'+tt+'</span>'+v.hook+'</div>';}if(userHook)h+='<div style="margin-top:.5rem"><span class="hook-tag tag-mine">yours</span>'+userHook+'</div>';document.getElementById('fc-hook').innerHTML=h;document.getElementById('hook-edit').value=userHook||'';const st=mem.status[cardKey(v)];const sh=st==='known'?'<span class="st-known">known</span>':(st==='learning'?'<span class="st-learning">learning</span>':'');document.getElementById('fc-status-front').innerHTML=sh;document.getElementById('fc-status-back').innerHTML=sh;document.getElementById('fc-counter').textContent=(fcIndex+1)+' / '+fcList.length;updateFcProgText();}
+function renderFlash(){renderSectionBar();fcList=VOCAB.filter(v=>v.s===fcSection);if(fcIndex>=fcList.length)fcIndex=0;const card=document.getElementById('fc-card');card.classList.remove('flipped');const v=fcList[fcIndex];const ft=document.getElementById('fc-front-text'),bt=document.getElementById('fc-back-text');if(fcDir==='produce'){ft.className='fc-en';ft.textContent=v.en;bt.className='fc-word';bt.textContent=v.bq;document.getElementById('fc-tap-hint').textContent='recall the Basque, then tap to check';}else{ft.className='fc-word';ft.textContent=v.bq;bt.className='fc-en';bt.textContent=v.en;document.getElementById('fc-tap-hint').textContent='recall the meaning, then tap to check';}const userHook=mem.hooks[cardKey(v)];let h='';if(v.hk){const tc={link:'tag-link',logic:'tag-logic',hook:'tag-hook'}[v.hk];const tt={link:'real link',logic:'logic',hook:'memory aid'}[v.hk];h+='<div><span class="hook-tag '+tc+'">'+tt+'</span>'+v.hook+'</div>';}if(userHook)h+='<div style="margin-top:.5rem"><span class="hook-tag tag-mine">yours</span>'+userHook+'</div>';document.getElementById('fc-hook').innerHTML=h;document.getElementById('hook-edit').value=userHook||'';const st=mem.status[cardKey(v)];const sh=st==='known'?'<span class="st-known">known</span>':(st==='learning'?'<span class="st-learning">learning</span>':'');document.getElementById('fc-status-front').innerHTML=sh;document.getElementById('fc-status-back').innerHTML=sh;document.getElementById('fc-counter').textContent=(fcIndex+1)+' / '+fcList.length;updateFcProgText();}
 function flipCard(){document.getElementById('fc-card').classList.toggle('flipped');}
 function nextCard(){fcIndex=(fcIndex+1)%fcList.length;renderFlash();}
 function prevCard(){fcIndex=(fcIndex-1+fcList.length)%fcList.length;renderFlash();}
