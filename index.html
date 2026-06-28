@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Euskara">
+<meta name="theme-color" content="#1A1713">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%231A1713'/%3E%3Ctext x='90' y='122' font-size='100' font-family='Georgia,serif' font-style='italic' fill='%23C98A6F' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+<title>Euskara — Basque</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F1EA; --bg-card:#FCFAF5; --ink:#1A1713; --ink-mid:#574F45; --ink-light:#998F82;
+    --accent:#8A4A3B; --accent-pale:#F1E6E1; --border:#DED7CC;
+    --basque:#5A2E33; --success:#3A7045; --success-bg:#E6F0E8; --warn:#B5762A; --warn-bg:#F4E9D6;
+    --c-root:#3A332B; --c-root-bg:#EAE4DA;
+    --c-article:#2F6B8A; --c-article-bg:#DEECF2;
+    --c-doer:#C0504A; --c-doer-bg:#F6E3E1;
+    --c-compare:#7E54A3; --c-compare-bg:#ECE3F4;
+    --c-quant:#B5762A; --c-quant-bg:#F4E9D6;
+    --c-describe:#48794F; --c-describe-bg:#E1EFE2;
+    --c-demon:#B0547F; --c-demon-bg:#F5E2EC;
+    --c-verb:#A06A2C; --c-verb-bg:#F2E7D5;
+    --c-gram:#8A8175; --c-gram-bg:#E9E5DD;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;font-weight:300;line-height:1.6;overflow-x:hidden}
+  /* APP BAR */
+  .appbar{position:sticky;top:0;z-index:50;background:var(--ink);color:var(--bg);padding:calc(env(safe-area-inset-top) + .8rem) 1rem .8rem;display:flex;align-items:center;gap:12px;min-height:52px}
+  .appbar .back{background:none;border:none;color:var(--bg);font-size:1.4rem;cursor:pointer;width:30px;display:none;line-height:1}
+  .appbar.has-back .back{display:block}
+  .appbar h1{font-family:'Lora',serif;font-weight:400;font-size:1.05rem;flex:1;letter-spacing:.01em}
+  .appbar h1 em{font-style:italic;color:#C98A6F}
+  .appbar .gear{background:none;border:none;color:#998F82;font-size:1.2rem;cursor:pointer}
+  .wrap{max-width:680px;margin:0 auto;padding:1.25rem 1.1rem calc(env(safe-area-inset-bottom) + 3rem)}
+  .screen{display:none;animation:fade .25s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  /* HOME */
+  .hero{margin:.5rem 0 1.5rem}
+  .hero h2{font-family:'Lora',serif;font-weight:400;font-size:1.7rem;margin-bottom:.3rem}
+  .hero p{font-size:.9rem;color:var(--ink-mid)}
+  .unit-card{background:var(--bg-card);border:.5px solid var(--border);border-radius:16px;padding:1.3rem;margin-bottom:1rem;cursor:pointer;transition:transform .12s,box-shadow .12s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .unit-card:active{transform:scale(.985)}
+  .unit-card .uc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem}
+  .unit-card .uc-kicker{font-family:'DM Mono',monospace;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  .unit-card h3{font-family:'Lora',serif;font-weight:400;font-size:1.3rem}
+  .unit-card h3 em{font-style:italic;color:var(--ink-mid)}
+  .unit-card .uc-sub{font-size:.85rem;color:var(--ink-light);margin-bottom:1rem}
+  .prog-track{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+  .prog-fill{height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+  .prog-label{font-size:.72rem;color:var(--ink-light);font-family:'DM Mono',monospace;margin-top:.5rem}
+  .soon-card{background:none;border:1px dashed var(--border);border-radius:16px;padding:1.1rem 1.3rem;text-align:center;color:var(--ink-light);font-size:.85rem}
+
+  /* UNIT HUB */
+  .mode-card{display:flex;align-items:center;gap:1rem;background:var(--bg-card);border:.5px solid var(--border);border-radius:14px;padding:1.2rem 1.3rem;margin-bottom:.9rem;cursor:pointer;transition:transform .12s;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .mode-card:active{transform:scale(.985)}
+  .mode-icon{font-size:1.5rem;width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mode-card h3{font-family:'Lora',serif;font-weight:400;font-size:1.15rem;margin-bottom:.15rem}
+  .mode-card p{font-size:.82rem;color:var(--ink-light);line-height:1.45}
+
+  /* generic section title */
+  .sec-title{font-family:'DM Mono',monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-light);margin:1.5rem 0 .75rem}
+
+  /* TABS (learn tools / vocab games) */
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem}
+  .pill{font-size:.78rem;padding:7px 13px;border-radius:8px;border:.5px solid var(--border);background:var(--bg-card);cursor:pointer;color:var(--ink-mid);transition:all .15s;display:flex;gap:6px;align-items:center}
+  .pill .pn{font-family:'DM Mono',monospace;font-size:.68rem;opacity:.55}
+  .pill.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .subpanel{display:none}.subpanel.active{display:block;animation:fade .25s ease}
+
+  /* LEGEND */
+  .legend{background:var(--bg-card);border:.5px solid var(--border);border-radius:12px;padding:.9rem 1rem;margin-bottom:1.25rem}
+  .legend h4{font-family:'DM Mono',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-light);margin-bottom:.6rem}
+  .legend-grid{display:flex;flex-wrap:wrap;gap:5px}
+  .leg-chip{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;padding:2px 9px 2px 7px;border-radius:99px;font-family:'DM Mono',monospace}
+  .leg-dot{width:8px;height:8px;border-radius:2px}
+
+  /* function colours */
+  .fn-root{color:var(--c-root)} .bgfn-root{background:var(--c-root-bg)}
+  .fn-article{color:var(--c-article)} .bgfn-article{background:var(--c-article-bg)}
+  .fn-doer{color:var(--c-doer)} .bgfn-doer{background:var(--c-doer-bg)}
+  .fn-compare{color:var(--c-compare)} .bgfn-compare{background:var(--c-compare-bg)}
+  .fn-quant{color:var(--c-quant)} .bgfn-quant{background:var(--c-quant-bg)}
+  .fn-describe{color:var(--c-describe)} .bgfn-describe{background:var(--c-describe-bg)}
+  .fn-demon{color:var(--c-demon)} .bgfn-demon{background:var(--c-demon-bg)}
+  .fn-verb{color:var(--c-verb)} .bgfn-verb{background:var(--c-verb-bg)}
+  .fn-gram{color:var(--c-gram)} .bgfn-gram{background:var(--c-gram-bg)}
+
+  /* BUILDER */
+  .track-select{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem}
+  .track-btn{font-size:.74rem;font-family:'DM Mono',monospace;padding:5px 11px;border-radius:99px;border:.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-mid)}
+  .track-btn.active{color:#fff}
+  .builder-stage{background:var(--bg-card);border:.5px solid var(--border);border-radius:14px;padding:1.5rem 1.2rem;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .build-prompt{font-size:.74rem;color:var(--ink-light);font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem;text-align:center}
+  .word-display{display:flex;justify-content:center;align-items:baseline;flex-wrap:wrap;gap:1px;margin-bottom:.5rem;min-height:50px}
+  .morph{font-family:'Lora',serif;font-style:italic;font-size:1.9rem;position:relative;animation:pop .25s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(-5px) scale(.9)}to{opacity:1;transform:none}}
+  .morph .mlabel{position:absolute;top:100%;left:50%;transform:translateX(-50%);font-family:'DM Mono',monospace;font-style:normal;font-size:.52rem;white-space:nowrap;opacity:.7;margin-top:1px}
+  .gloss-en{text-align:center;font-size:1.1rem;margin-top:1.4rem}
+  .gloss-es{text-align:center;font-size:.88rem;color:var(--ink-light);font-style:italic;margin-top:3px}
+  .gloss-es:not(:empty)::before{content:'ES ';font-family:'DM Mono',monospace;font-style:normal;font-size:.6rem;letter-spacing:.08em;opacity:.7}
+  .example-line{text-align:center;font-size:.82rem;color:var(--ink-mid);margin-top:1rem;padding-top:.85rem;border-top:.5px dashed var(--border);min-height:18px}
+  .example-line .ex-bq{font-family:'Lora',serif;font-style:italic;color:var(--c-root)}
+  .chip-row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:1.4rem}
+  .chip-label{width:100%;text-align:center;font-size:.68rem;color:var(--ink-light);font-family:'DM Mono',monospace;margin-bottom:.3rem}
+  .suffix-chip{font-family:'Lora',serif;font-style:italic;font-size:1rem;padding:6px 15px;border-radius:99px;border:1.5px dashed;background:var(--bg);cursor:pointer}
+  .suffix-chip .schip-sub{font-family:'DM Mono',monospace;font-style:normal;font-size:.58rem;display:block;text-align:center;opacity:.7}
+  .reset-btn{display:block;margin:1.1rem auto 0;font-size:.76rem;padding:6px 15px;border-radius:8px;border:.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-mid)}
+
+  /* ANATOMY */
+  .anat-sentence{background:var(--bg-card);border:.5px solid var(--border);border-radius:12px;padding:1.3rem;margin-bottom:1rem}
+  .anat-line{display:flex;flex-wrap:wrap;align-items:flex-start;gap:2px;margin-bottom:.75rem;line-height:2.2}
+  .tok{font-family:'Lora',serif;font-style:italic;font-size:1.25rem;cursor:pointer;border-radius:4px;padding:0 2px;border-bottom:2.5px solid transparent}
+  .tok.sel{box-shadow:0 0 0 2px currentColor inset}
+  .tok-space{width:5px}
+  .anat-en{font-size:.85rem;color:var(--ink-mid);padding-top:.5rem;border-top:.5px dashed var(--border)}
+  .anat-detail{margin-top:.75rem;background:var(--bg);border-radius:8px;padding:.8rem .9rem;font-size:.85rem;min-height:42px;color:var(--ink-mid)}
+  .anat-detail.empty{color:var(--ink-light);font-style:italic;font-size:.8rem}
+  .anat-detail .d-role{font-family:'DM Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:.08em;padding:2px 7px;border-radius:99px;margin-right:8px;white-space:nowrap}
+  .anat-detail .d-bq{font-family:'Lora',serif;font-style:italic;font-weight:500}
+
+  /* CONTRAST CARDS */
+  .cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:520px){.cards-grid{grid-template-columns:1fr}}
+  .flip-card{height:195px;perspective:1200px;cursor:pointer}
+  .flip-inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+  .flip-card.flipped .flip-inner{transform:rotateY(180deg)}
+  .flip-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;border:.5px solid var(--border);padding:1rem;display:flex;flex-direction:column}
+  .flip-front{background:var(--ink);color:var(--bg);justify-content:center;align-items:center;text-align:center}
+  .flip-front .fc-concept{font-family:'Lora',serif;font-size:1.1rem;font-style:italic;margin-bottom:.4rem}
+  .flip-front .fc-hint{font-size:.68rem;font-family:'DM Mono',monospace;color:#998F82}
+  .flip-back{background:var(--bg-card);transform:rotateY(180deg);gap:.45rem;overflow-y:auto}
+  .cmp-row{display:flex;gap:7px;font-size:.8rem;line-height:1.4}
+  .cmp-lang{font-family:'DM Mono',monospace;font-size:.56rem;font-weight:500;padding:2px 5px;border-radius:4px;height:fit-content;margin-top:2px}
+  .cmp-en{background:#E5E5E5;color:#444}.cmp-es{background:#F4E9D6;color:#9A6B1E}.cmp-eu{background:var(--c-doer-bg);color:var(--c-doer)}
+  .cmp-text{flex:1}.cmp-text .eu-word{font-family:'Lora',serif;font-style:italic;color:var(--c-root);font-size:.92rem}
+  .cmp-note{font-size:.74rem;color:var(--ink-light);font-style:italic;margin-top:auto;padding-top:.4rem;border-top:.5px dashed var(--border)}
+
+  /* DECODER */
+  .decoder{background:var(--bg-card);border:.5px solid var(--border);border-radius:14px;padding:1.5rem 1.2rem}
+  .dec-toggle{display:flex;justify-content:center;background:var(--bg);border-radius:99px;padding:4px;width:fit-content;margin:0 auto 1.5rem;border:.5px solid var(--border)}
+  .dec-opt{font-size:.82rem;padding:8px 20px;border-radius:99px;border:none;background:none;cursor:pointer;color:var(--ink-mid)}
+  .dec-opt.active{background:var(--c-verb);color:#fff}
+  .dec-row{text-align:center;margin-bottom:1rem}
+  .dec-row .dr-label{font-size:.72rem;color:var(--ink-light);font-family:'DM Mono',monospace;margin-bottom:.3rem}
+  .dec-row .dr-bq{font-family:'Lora',serif;font-style:italic;font-size:1.25rem;color:var(--c-root)}
+  .dec-row .dr-bq .hl{color:var(--c-verb);background:var(--c-verb-bg);padding:1px 5px;border-radius:5px}
+  .dec-row .dr-bq .hl.demon{color:var(--c-demon);background:var(--c-demon-bg)}
+  .dec-row .dr-en{font-size:.8rem;color:var(--ink-mid);margin-top:.25rem}
+
+  /* FLASHCARDS */
+  .fc-sectionbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+  .fc-secbtn{font-size:.72rem;font-family:'DM Mono',monospace;padding:5px 10px;border-radius:99px;border:.5px solid var(--border);background:none;cursor:pointer;color:var(--ink-mid)}
+  .fc-secbtn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .fc-stage{perspective:1400px;margin-bottom:1rem}
+  .fc-card{position:relative;width:100%;min-height:260px;transition:transform .5s;transform-style:preserve-3d;cursor:pointer}
+  .fc-card.flipped{transform:rotateY(180deg)}
+  .fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:18px;border:.5px solid var(--border);background:var(--bg-card);box-shadow:0 2px 8px rgba(0,0,0,.05);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:1.5rem;text-align:center}
+  .fc-back{transform:rotateY(180deg)}
+  .fc-word{font-family:'Lora',serif;font-style:italic;font-size:2.1rem;color:var(--basque);margin-bottom:.5rem}
+  .fc-en{font-size:1.3rem;color:var(--ink)}
+  .fc-tap{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:.66rem;font-family:'DM Mono',monospace;color:var(--ink-light)}
+  .fc-hook{margin-top:1rem;font-size:.8rem;color:var(--ink-mid);max-width:90%}
+  .fc-hook .hook-tag{font-family:'DM Mono',monospace;font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:99px;margin-right:6px}
+  .tag-link{background:var(--c-describe-bg);color:var(--c-describe)}
+  .tag-logic{background:var(--c-compare-bg);color:var(--c-compare)}
+  .tag-hook{background:var(--c-quant-bg);color:var(--c-quant)}
+  .tag-mine{background:var(--c-article-bg);color:var(--c-article)}
+  .fc-status{position:absolute;top:14px;right:16px;font-family:'DM Mono',monospace;font-size:.6rem;padding:2px 8px;border-radius:99px}
+  .st-known{background:var(--success-bg);color:var(--success)}
+  .st-learning{background:var(--warn-bg);color:var(--warn)}
+  .fc-controls{display:flex;gap:8px;margin-bottom:.6rem}
+  .fc-btn{flex:1;padding:11px;border-radius:10px;border:.5px solid var(--border);background:var(--bg-card);cursor:pointer;font-size:.85rem;font-family:'DM Sans',sans-serif;color:var(--ink-mid)}
+  .fc-btn.learning:active{background:var(--warn-bg)}
+  .fc-btn.known{border-color:var(--success);color:var(--success)}
+  .fc-btn.known:active{background:var(--success-bg)}
+  .fc-nav{display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:var(--ink-light);font-family:'DM Mono',monospace}
+  .fc-nav button{background:none;border:.5px solid var(--border);border-radius:8px;padding:7px 14px;cursor:pointer;color:var(--ink-mid);font-family:'DM Sans',sans-serif;font-size:.8rem}
+  .hook-edit{width:100%;margin-top:.8rem;padding:7px 10px;border:.5px dashed var(--border);border-radius:8px;background:var(--bg);font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--ink);resize:none}
+
+  /* GAMES shared */
+  .game-card{background:var(--bg-card);border:.5px solid var(--border);border-radius:14px;padding:1.3rem;text-align:center}
+  .game-stat{font-family:'DM Mono',monospace;font-size:.74rem;color:var(--ink-light);margin-bottom:1rem}
+  .game-stat b{color:var(--accent)}
+  .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 22px;font-size:.88rem;font-family:'DM Sans',sans-serif;cursor:pointer}
+  .btn-ghost{background:none;border:.5px solid var(--border);border-radius:10px;padding:10px 18px;font-size:.84rem;cursor:pointer;color:var(--ink-mid)}
+  /* match */
+  .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:1rem 0}
+  .match-tile{padding:13px 8px;border-radius:10px;border:.5px solid var(--border);background:var(--bg-card);cursor:pointer;font-size:.92rem;transition:all .15s;min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center}
+  .match-tile.eu{font-family:'Lora',serif;font-style:italic;color:var(--basque)}
+  .match-tile.sel{border-color:var(--accent);background:var(--accent-pale)}
+  .match-tile.done{opacity:0;pointer-events:none;transform:scale(.8)}
+  .match-tile.wrong{border-color:var(--c-doer);background:var(--c-doer-bg);animation:shake .35s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  /* build game */
+  .bg-target{font-size:1.15rem;margin-bottom:.4rem}
+  .bg-slot{min-height:56px;border:1.5px dashed var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:1px;flex-wrap:wrap;padding:.5rem;margin:1rem 0;background:var(--bg)}
+  .bg-slot .morph{font-size:1.5rem;cursor:pointer}
+  .bg-slot.empty::before{content:'tap tiles below';color:var(--ink-light);font-size:.78rem;font-style:italic}
+  .bg-tiles{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:1rem}
+  .bg-tile{font-family:'Lora',serif;font-style:italic;font-size:1.05rem;padding:8px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg-card);cursor:pointer}
+  .bg-tile.used{opacity:.3;pointer-events:none}
+  .bg-feedback{min-height:24px;font-size:.85rem;font-family:'DM Mono',monospace;margin-bottom:.5rem}
+  .bg-feedback.ok{color:var(--success)}.bg-feedback.no{color:var(--c-doer)}
+  /* speed */
+  .sp-word{font-family:'Lora',serif;font-style:italic;font-size:2.3rem;color:var(--basque);margin:1rem 0}
+  .sp-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+  .sp-opt{padding:14px 8px;border-radius:10px;border:.5px solid var(--border);background:var(--bg-card);cursor:pointer;font-size:.9rem}
+  .sp-opt.correct{border-color:var(--success);background:var(--success-bg)}
+  .sp-opt.wrong{border-color:var(--c-doer);background:var(--c-doer-bg)}
+  .sp-bar{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:.76rem;color:var(--ink-light);margin-bottom:.5rem}
+
+  /* BACKUP */
+  .backup-box{background:var(--bg-card);border:.5px solid var(--border);border-radius:14px;padding:1.3rem}
+  .backup-box p{font-size:.85rem;color:var(--ink-mid);margin-bottom:1rem;line-height:1.6}
+  .backup-row{display:flex;gap:8px}
+
+  .footer-note{margin-top:1.5rem;padding:.9rem 1.1rem;background:var(--bg-card);border:.5px solid var(--border);border-radius:10px;font-size:.8rem;color:var(--ink-mid);line-height:1.6}
+  .footer-note strong{color:var(--ink);font-weight:500}
+</style>
+</head>
+<body>
+
+<div class="appbar" id="appbar">
+  <button class="back" onclick="goBack()">‹</button>
+  <h1 id="appbar-title"><em>Euskara</em> · Basque</h1>
+  <button class="gear" onclick="nav('backup')">⛭</button>
+</div>
+
+<div class="wrap">
+
+  <!-- ===== HOME ===== -->
+  <div class="screen active" id="screen-home">
+    <div class="hero">
+      <h2>Euskara</h2>
+      <p>Your Basque, built unit by unit.</p>
+    </div>
+    <div class="unit-card" onclick="openUnit()">
+      <div class="uc-top">
+        <div>
+          <div class="uc-kicker">Gipuzkoan · Unit 7</div>
+          <h3>Erosketak — <em>Shopping</em></h3>
+        </div>
+      </div>
+      <div class="uc-sub">Quantities · comparison · the doer & the describer</div>
+      <div class="prog-track"><div class="prog-fill" id="home-prog"></div></div>
+      <div class="prog-label" id="home-prog-label">—</div>
+    </div>
+    <div class="soon-card">More units drop in here as we build them.</div>
+    <div class="footer-note">
+      <strong>Make it an app:</strong> open this page in your browser, then tap Share → “Add to Home Screen”. It’ll sit on your phone like a real app. Your progress and your own memory hooks are saved on your device — use the ⛭ to back them up.
+    </div>
+  </div>
+
+  <!-- ===== UNIT HUB ===== -->
+  <div class="screen" id="screen-unit">
+    <div class="hero">
+      <h2>Unit 7 — <em style="font-style:italic;color:var(--ink-mid)">Erosketak</em></h2>
+      <p>Choose how you want to work.</p>
+    </div>
+    <div class="mode-card" onclick="nav('learn')">
+      <div class="mode-icon bgfn-compare" style="color:var(--c-compare)">◧</div>
+      <div><h3>Learn the grammar</h3><p>Interactive tools: build words from suffixes, dissect sentences, compare with Spanish.</p></div>
+    </div>
+    <div class="mode-card" onclick="nav('vocab')">
+      <div class="mode-icon bgfn-quant" style="color:var(--c-quant)">◉</div>
+      <div><h3>Vocabulary</h3><p>Flashcards with memory hooks, plus three games to drill the words in.</p></div>
+    </div>
+  </div>
+
+  <!-- ===== LEARN ===== -->
+  <div class="screen" id="screen-learn">
+    <div class="legend">
+      <h4>Colour key</h4>
+      <div class="legend-grid">
+        <span class="leg-chip bgfn-root" style="color:var(--c-root)"><span class="leg-dot" style="background:var(--c-root)"></span>root</span>
+        <span class="leg-chip bgfn-article" style="color:var(--c-article)"><span class="leg-dot" style="background:var(--c-article)"></span>article</span>
+        <span class="leg-chip bgfn-doer" style="color:var(--c-doer)"><span class="leg-dot" style="background:var(--c-doer)"></span>doer -k</span>
+        <span class="leg-chip bgfn-compare" style="color:var(--c-compare)"><span class="leg-dot" style="background:var(--c-compare)"></span>comparison</span>
+        <span class="leg-chip bgfn-quant" style="color:var(--c-quant)"><span class="leg-dot" style="background:var(--c-quant)"></span>quantity/any</span>
+        <span class="leg-chip bgfn-describe" style="color:var(--c-describe)"><span class="leg-dot" style="background:var(--c-describe)"></span>-ko</span>
+        <span class="leg-chip bgfn-demon" style="color:var(--c-demon)"><span class="leg-dot" style="background:var(--c-demon)"></span>demonstr.</span>
+        <span class="leg-chip bgfn-verb" style="color:var(--c-verb)"><span class="leg-dot" style="background:var(--c-verb)"></span>verb</span>
+      </div>
+    </div>
+    <div class="pills">
+      <button class="pill active" onclick="learnTab(0,this)"><span class="pn">01</span>Builder</button>
+      <button class="pill" onclick="learnTab(1,this)"><span class="pn">02</span>Anatomy</button>
+      <button class="pill" onclick="learnTab(2,this)"><span class="pn">03</span>EN/ES/EU</button>
+      <button class="pill" onclick="learnTab(3,this)"><span class="pn">04</span>Decoder</button>
+    </div>
+
+    <div class="subpanel active" id="learn-0">
+      <div class="track-select" id="track-select"></div>
+      <div class="builder-stage">
+        <div class="build-prompt" id="build-prompt"></div>
+        <div class="word-display" id="word-display"></div>
+        <div class="gloss-en" id="gloss-en"></div>
+        <div class="gloss-es" id="gloss-es"></div>
+        <div class="example-line" id="example-line"></div>
+        <div class="chip-row" id="chip-row"></div>
+        <button class="reset-btn" onclick="resetBuild()">↺ Reset stem</button>
+      </div>
+    </div>
+    <div class="subpanel" id="learn-1"><div id="anatomy-container"></div></div>
+    <div class="subpanel" id="learn-2"><div class="cards-grid" id="cards-grid"></div></div>
+    <div class="subpanel" id="learn-3">
+      <div class="decoder">
+        <div class="dec-toggle">
+          <button class="dec-opt active" id="dec-one" onclick="setNumber('one')">one (it)</button>
+          <button class="dec-opt" id="dec-many" onclick="setNumber('many')">several (them)</button>
+        </div>
+        <div id="dec-rows"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VOCAB HUB ===== -->
+  <div class="screen" id="screen-vocab">
+    <div class="hero"><h2>Vocabulary</h2><p>Flashcards first to meet the words, then games to lock them in.</p></div>
+    <div class="mode-card" onclick="nav('flashcards')">
+      <div class="mode-icon bgfn-article" style="color:var(--c-article)">▭</div>
+      <div><h3>Flashcards</h3><p id="fc-prog-text">Flip, rate, and add your own memory hooks.</p></div>
+    </div>
+    <div class="mode-card" onclick="startMatch()">
+      <div class="mode-icon bgfn-demon" style="color:var(--c-demon)">⧉</div>
+      <div><h3>Match-up</h3><p>Pair Basque with English against the clock.</p></div>
+    </div>
+    <div class="mode-card" onclick="nav('build')">
+      <div class="mode-icon bgfn-compare" style="color:var(--c-compare)">◫</div>
+      <div><h3>Build-the-word</h3><p>Assemble target words from suffix tiles.</p></div>
+    </div>
+    <div class="mode-card" onclick="startSpeed()">
+      <div class="mode-icon bgfn-doer" style="color:var(--c-doer)">⚡</div>
+      <div><h3>Speed recall</h3><p>Rapid-fire: pick the meaning before you overthink.</p></div>
+    </div>
+  </div>
+
+  <!-- ===== FLASHCARDS ===== -->
+  <div class="screen" id="screen-flashcards">
+    <div class="fc-sectionbar" id="fc-sectionbar"></div>
+    <div class="fc-stage">
+      <div class="fc-card" id="fc-card" onclick="flipCard()">
+        <div class="fc-face fc-front">
+          <div class="fc-status" id="fc-status-front"></div>
+          <div class="fc-word" id="fc-word"></div>
+          <div class="fc-tap">tap to flip</div>
+        </div>
+        <div class="fc-face fc-back">
+          <div class="fc-status" id="fc-status-back"></div>
+          <div class="fc-en" id="fc-en"></div>
+          <div class="fc-hook" id="fc-hook"></div>
+        </div>
+      </div>
+    </div>
+    <textarea class="hook-edit" id="hook-edit" rows="2" placeholder="✎ Add your own memory hook (saved automatically)…" onchange="saveHook()" onclick="event.stopPropagation()"></textarea>
+    <div class="fc-controls" style="margin-top:.8rem">
+      <button class="fc-btn learning" onclick="rateCard('learning')">Still learning</button>
+      <button class="fc-btn known" onclick="rateCard('known')">Got it ✓</button>
+    </div>
+    <div class="fc-nav">
+      <button onclick="prevCard()">‹ Prev</button>
+      <span id="fc-counter"></span>
+      <button onclick="nextCard()">Next ›</button>
+    </div>
+  </div>
+
+  <!-- ===== MATCH ===== -->
+  <div class="screen" id="screen-match">
+    <div class="game-card">
+      <div class="game-stat">Time <b id="match-time">0.0s</b> &nbsp;·&nbsp; Best <b id="match-best">—</b></div>
+      <div class="match-grid" id="match-grid"></div>
+      <div id="match-done" style="display:none">
+        <p style="font-family:'Lora',serif;font-size:1.2rem;font-style:italic;margin-bottom:.3rem" id="match-result"></p>
+        <button class="btn-primary" onclick="startMatch()">Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BUILD GAME ===== -->
+  <div class="screen" id="screen-build">
+    <div class="game-card">
+      <div class="game-stat">Score <b id="build-score">0</b> / <span id="build-total">0</span></div>
+      <div class="bg-target">Build: <strong id="bg-target-en"></strong></div>
+      <div class="bg-slot empty" id="bg-slot"></div>
+      <div class="bg-tiles" id="bg-tiles"></div>
+      <div class="bg-feedback" id="bg-feedback"></div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <button class="btn-ghost" onclick="clearBuild()">Clear</button>
+        <button class="btn-primary" onclick="checkBuild()">Check</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SPEED ===== -->
+  <div class="screen" id="screen-speed">
+    <div class="game-card">
+      <div class="sp-bar"><span>Q <b id="sp-qnum">1</b>/10</span><span>Streak <b id="sp-streak">0</b></span><span>Best <b id="sp-best">—</b></span></div>
+      <div class="sp-word" id="sp-word"></div>
+      <div class="sp-options" id="sp-options"></div>
+      <div id="sp-done" style="display:none">
+        <p style="font-family:'Lora',serif;font-size:1.3rem;font-style:italic;margin:.5rem 0" id="sp-result"></p>
+        <button class="btn-primary" onclick="startSpeed()">Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BACKUP ===== -->
+  <div class="screen" id="screen-backup">
+    <div class="hero"><h2>Backup</h2><p>Save or restore your progress and hooks.</p></div>
+    <div class="backup-box">
+      <p>Your progress, ratings, and custom memory hooks live on this device. Clearing your browser data would erase them — so export a backup file now and then. To move to a new phone, export here and import there.</p>
+      <div class="backup-row">
+        <button class="btn-primary" onclick="exportData()">Export backup</button>
+        <button class="btn-ghost" onclick="document.getElementById('import-file').click()">Import</button>
+        <input type="file" id="import-file" accept="application/json" style="display:none" onchange="importData(event)">
+      </div>
+      <div id="backup-msg" style="font-size:.8rem;color:var(--success);margin-top:.8rem;min-height:18px"></div>
+    </div>
+    <div class="footer-note" style="margin-top:1rem">
+      <strong>Reset:</strong> to wipe all saved progress on this device, <button onclick="resetAll()" style="background:none;border:none;color:var(--c-doer);text-decoration:underline;cursor:pointer;font-size:inherit;font-family:inherit">clear everything</button>.
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============ STORAGE (safe) ============ */
+const STORE_KEY='euskara_v1';
+let mem={hooks:{},status:{},best:{match:null,speed:null}};
+function loadStore(){
+  try{const r=localStorage.getItem(STORE_KEY);if(r)mem=Object.assign(mem,JSON.parse(r));}catch(e){}
+}
+function saveStore(){
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(mem));}catch(e){}
+}
+loadStore();
+
+/* ============ NAV ============ */
+const titles={home:'<em>Euskara</em> · Basque',unit:'Unit 7',learn:'Learn',vocab:'Vocabulary',
+  flashcards:'Flashcards',match:'Match-up',build:'Build-the-word',speed:'Speed recall',backup:'Backup'};
+const backMap={unit:'home',learn:'unit',vocab:'unit',flashcards:'vocab',match:'vocab',build:'vocab',speed:'vocab',backup:'home'};
+let curScreen='home';
+function nav(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.getElementById('screen-'+s).classList.add('active');
+  document.getElementById('appbar-title').innerHTML=titles[s];
+  document.getElementById('appbar').classList.toggle('has-back',s!=='home');
+  curScreen=s;
+  window.scrollTo(0,0);
+  if(s==='flashcards')renderFlash();
+  if(s==='build')startBuild();
+  if(s==='home')updateHomeProgress();
+}
+function goBack(){nav(backMap[curScreen]||'home')}
+function openUnit(){nav('unit')}
+
+/* ============ VOCAB DATA (Unit 7) ============ */
+/* hook types: link = real shared/loan origin · logic = Basque internal logic · hook = mnemonic aid */
+const VOCAB=[
+ {s:'Quantities',bq:'azoka',en:'market',hk:'hook',hook:'a-ZOK-a → where you go to soak up the stalls'},
+ {s:'Quantities',bq:'denda',en:'shop',hk:'',hook:''},
+ {s:'Quantities',bq:'janari',en:'food',hk:'',hook:''},
+ {s:'Quantities',bq:'letxuga',en:'lettuce',hk:'link',hook:'= Spanish lechuga'},
+ {s:'Quantities',bq:'tomate',en:'tomato',hk:'link',hook:'= Spanish tomate'},
+ {s:'Quantities',bq:'patata',en:'potato',hk:'link',hook:'= Spanish patata'},
+ {s:'Quantities',bq:'fruta',en:'fruit',hk:'link',hook:'= Spanish fruta'},
+ {s:'Quantities',bq:'esne',en:'milk',hk:'',hook:''},
+ {s:'Quantities',bq:'gazta',en:'cheese',hk:'',hook:''},
+ {s:'Quantities',bq:'ogi',en:'bread',hk:'',hook:''},
+ {s:'Quantities',bq:'ur',en:'water',hk:'',hook:''},
+ {s:'Quantities',bq:'barazki',en:'vegetable',hk:'',hook:''},
+ {s:'Quantities',bq:'bat',en:'a / one',hk:'',hook:''},
+ {s:'Quantities',bq:'batzuk',en:'some',hk:'',hook:''},
+ {s:'Quantities',bq:'pixka bat',en:'a little / a bit',hk:'',hook:''},
+ {s:'Quantities',bq:'asko',en:'a lot / many',hk:'',hook:''},
+ {s:'Quantities',bq:'gehiago',en:'more',hk:'',hook:''},
+ {s:'Quantities',bq:'gutxi',en:'few / not much',hk:'',hook:''},
+ {s:'Quantities',bq:'litro',en:'litre',hk:'link',hook:'= Spanish litro'},
+ {s:'Quantities',bq:'kilo',en:'kilo',hk:'link',hook:'= Spanish kilo'},
+ {s:'Quantities',bq:'baso',en:'glass',hk:'link',hook:'≈ Spanish vaso (both from Latin vas)'},
+ {s:'Quantities',bq:'guztira',en:'altogether, in total',hk:'',hook:''},
+ {s:'Quantities',bq:'euro',en:'euro',hk:'link',hook:'= Spanish/English euro'},
+
+ {s:'Which ones',bq:'zein',en:'which',hk:'',hook:''},
+ {s:'Which ones',bq:'zenbat',en:'how much / how many',hk:'',hook:''},
+ {s:'Which ones',bq:'hau',en:'this',hk:'',hook:''},
+ {s:'Which ones',bq:'hori',en:'that',hk:'',hook:''},
+ {s:'Which ones',bq:'hura',en:'that (yonder)',hk:'',hook:''},
+ {s:'Which ones',bq:'hauek',en:'these',hk:'logic',hook:'hau + plural -ek'},
+ {s:'Which ones',bq:'horiek',en:'those',hk:'logic',hook:'hori + -ek (said "hoiek")'},
+ {s:'Which ones',bq:'haiek',en:'those (yonder)',hk:'',hook:''},
+
+ {s:'Any / none',bq:'-rik / -ik',en:'any / no (partitive)',hk:'logic',hook:'used only in questions & negatives'},
+ {s:'Any / none',bq:'krema',en:'cream',hk:'link',hook:'= Spanish crema'},
+ {s:'Any / none',bq:'eguzkitako krema',en:'sun cream',hk:'logic',hook:'eguzki (sun) + -tako + krema'},
+ {s:'Any / none',bq:'kafe',en:'coffee',hk:'link',hook:'= Spanish café'},
+ {s:'Any / none',bq:'lan',en:'work',hk:'',hook:''},
+ {s:'Any / none',bq:'problema',en:'problem',hk:'link',hook:'= Spanish problema'},
+ {s:'Any / none',bq:'ardo',en:'wine',hk:'',hook:''},
+
+ {s:'Comparison',bq:'-ago',en:'-er (comparative)',hk:'logic',hook:'like Spanish "más", but a suffix'},
+ {s:'Comparison',bq:'-en',en:'-est (superlative)',hk:'logic',hook:'merkeen = cheapest'},
+ {s:'Comparison',bq:'-egi',en:'too… (excessive)',hk:'logic',hook:'txikiegi = too small'},
+ {s:'Comparison',bq:'hobe',en:'better (irregular)',hk:'',hook:''},
+ {s:'Comparison',bq:'merke',en:'cheap',hk:'',hook:''},
+ {s:'Comparison',bq:'garesti',en:'expensive',hk:'',hook:''},
+ {s:'Comparison',bq:'handi',en:'big',hk:'',hook:''},
+ {s:'Comparison',bq:'txiki',en:'small',hk:'hook',hook:'≈ Spanish "chico" (small) — memory aid only'},
+ {s:'Comparison',bq:'berri',en:'new',hk:'',hook:''},
+ {s:'Comparison',bq:'zahar',en:'old',hk:'',hook:''},
+ {s:'Comparison',bq:'gorri',en:'red / ripe',hk:'',hook:''},
+ {s:'Comparison',bq:'berde',en:'green',hk:'link',hook:'= Spanish verde'},
+
+ {s:'Preference',bq:'beste',en:'other / another',hk:'',hook:''},
+ {s:'Preference',bq:'besterik?',en:'anything else?',hk:'',hook:''},
+ {s:'Preference',bq:'nahiago dut',en:'I prefer',hk:'logic',hook:'nahi (want) + -ago (more) = "want more"'},
+ {s:'Preference',bq:'nere iritziz',en:'in my opinion',hk:'',hook:''},
+ {s:'Preference',bq:'hartu',en:'to take',hk:'',hook:''},
+ {s:'Preference',bq:'lehenengo',en:'first',hk:'',hook:''},
+
+ {s:'-k & -ko',bq:'-k',en:'the doer (ergative)',hk:'logic',hook:'marks the active subject of a "dut" verb'},
+ {s:'-k & -ko',bq:'nork?',en:'who? (as doer)',hk:'logic',hook:'nor + -k'},
+ {s:'-k & -ko',bq:'-ko',en:'of / describer',hk:'logic',hook:'euskarazko = Basque (describing)'},
+ {s:'-k & -ko',bq:'euskarazko',en:'Basque, in Basque (adj.)',hk:'logic',hook:'euskaraz + -ko'},
+ {s:'-k & -ko',bq:'aldameneko',en:'next-door',hk:'',hook:''},
+ {s:'-k & -ko',bq:'gaurko',en:"today's",hk:'logic',hook:'gaur (today) + -ko'},
+ {s:'-k & -ko',bq:'aurkitu',en:'to find',hk:'',hook:''},
+ {s:'-k & -ko',bq:'bilatu',en:'to look for',hk:'',hook:''}
+];
+const SECTIONS=[...new Set(VOCAB.map(v=>v.s))];
+
+/* ============ HOME PROGRESS ============ */
+function updateHomeProgress(){
+  const total=VOCAB.length;
+  let known=0;VOCAB.forEach(v=>{if(mem.status[v.bq]==='known')known++;});
+  const pct=Math.round(known/total*100);
+  document.getElementById('home-prog').style.width=pct+'%';
+  document.getElementById('home-prog-label').textContent=known+' / '+total+' words known · '+pct+'%';
+}
+
+/* ============ LEARN: BUILDER ============ */
+const tracks={
+  compare:{label:'Compare (handi)',colour:'compare',stem:{text:'handi',fn:'root',label:'big'},
+    start:{en:'big',es:'grande',ex:''},rules:{START:['ago','en','egi'],ago:['a'],en:['a'],egi:['a'],a:[]},
+    morphs:{ago:{text:'ago',fn:'compare',label:'-er'},en:{text:'en',fn:'compare',label:'-est'},egi:{text:'egi',fn:'compare',label:'too'},a:{text:'a',fn:'article',label:'the'}},
+    gloss:{'ago':{en:'bigger',es:'más grande',ex:''},'en':{en:'biggest',es:'el mayor',ex:''},'egi':{en:'too big',es:'demasiado grande',ex:''},
+      'ago|a':{en:'the bigger one',es:'el más grande',ex:'Etxe handiagoa nahi dut. — I want a bigger house.'},
+      'en|a':{en:'the biggest one',es:'el mayor',ex:'Hau da handiena. — This is the biggest.'},
+      'egi|a':{en:'too big (one)',es:'demasiado grande',ex:'Hiztegi hau handiegia da. — This dictionary is too big.'}}},
+  cheap:{label:'Compare (merke)',colour:'compare',stem:{text:'merke',fn:'root',label:'cheap'},
+    start:{en:'cheap',es:'barato',ex:''},rules:{START:['ago','en','egi'],ago:['a'],en:['a'],egi:['a'],a:[]},
+    morphs:{ago:{text:'ago',fn:'compare',label:'-er'},en:{text:'en',fn:'compare',label:'-est'},egi:{text:'egi',fn:'compare',label:'too'},a:{text:'a',fn:'article',label:'the'}},
+    gloss:{'ago':{en:'cheaper',es:'más barato',ex:''},'en':{en:'cheapest',es:'el más barato',ex:''},'egi':{en:'too cheap',es:'demasiado barato',ex:''},
+      'ago|a':{en:'the cheaper one',es:'el más barato',ex:'Beste hau merkeagoa da. — This other one is cheaper.'},
+      'en|a':{en:'the cheapest one',es:'el más barato',ex:'Hau da merkeena. — This is the cheapest.'},
+      'egi|a':{en:'too cheap (one)',es:'demasiado barato',ex:''}}},
+  doer:{label:'Doer (Naroa)',colour:'doer',stem:{text:'Naroa',fn:'root',label:'name'},
+    start:{en:'Naroa (simply IS something)',es:'Naroa (simplemente es)',ex:'Naroa polita da. — Naroa is pretty.'},
+    rules:{START:['k'],k:[]},morphs:{k:{text:'k',fn:'doer',label:'does!'}},
+    gloss:{'k':{en:'Naroa — now the DOER of an action',es:'Naroa (la que hace algo)',ex:'Naroak lagunak ditu. — Naroa has friends.'}}},
+  doerNoun:{label:'Doer (lagun)',colour:'doer',stem:{text:'lagun',fn:'root',label:'friend'},
+    start:{en:'friend',es:'amigo/a',ex:''},rules:{START:['a','ak'],a:['k'],ak:[],k:[]},
+    morphs:{a:{text:'a',fn:'article',label:'the sg'},ak:{text:'ak',fn:'article',label:'the pl'},k:{text:'k',fn:'doer',label:'does!'}},
+    gloss:{'a':{en:'the friend',es:'el/la amigo/a',ex:'Laguna etorri da. — The friend has come.'},
+      'ak':{en:'the friends (as doers → lagunek)',es:'los amigos (hacen algo)',ex:'Lagunek deitu dute. — The friends have called.'},
+      'a|k':{en:'the friend (as doer)',es:'el/la amigo/a (hace algo)',ex:'Lagunak deitu du. — The friend has called.'}}},
+  partitive:{label:'Any/none (ardo)',colour:'quant',stem:{text:'ardo',fn:'root',label:'wine'},
+    start:{en:'wine',es:'vino',ex:''},rules:{START:['a','rik'],a:[],rik:[]},
+    morphs:{a:{text:'a',fn:'article',label:'the'},rik:{text:'rik',fn:'quant',label:'any/no'}},
+    gloss:{'a':{en:'the wine (plain statement)',es:'el vino',ex:'Ardoa daukat. — I have wine.'},
+      'rik':{en:'any / no wine (in Q & negatives)',es:'(nada de) vino',ex:'Ez daukat ardorik. — I haven\u2019t any wine.'}}},
+  ko:{label:'Describer (euskaraz)',colour:'describe',stem:{text:'euskaraz',fn:'root',label:'in Basque'},
+    start:{en:'in Basque (adverb)',es:'en euskera',ex:''},rules:{START:['ko'],ko:[]},
+    morphs:{ko:{text:'ko',fn:'describe',label:'describer'}},
+    gloss:{'ko':{en:'Basque- (describes a noun)',es:'en euskera (que describe)',ex:'Euskarazko liburua. — A Basque book.'}}}
+};
+let curTrackKey='compare',buildState=[];
+function renderTrackButtons(){
+  const wrap=document.getElementById('track-select');wrap.innerHTML='';
+  Object.keys(tracks).forEach(k=>{
+    const b=document.createElement('button');b.className='track-btn'+(k===curTrackKey?' active':'');b.textContent=tracks[k].label;
+    if(k===curTrackKey){const c=getComputedStyle(document.documentElement).getPropertyValue('--c-'+tracks[k].colour).trim();b.style.background=c;b.style.borderColor=c;}
+    b.onclick=()=>{curTrackKey=k;buildState=[];renderTrackButtons();renderBuilder();};
+    wrap.appendChild(b);
+  });
+}
+function joinKey(){return buildState.join('|')}
+function renderBuilder(){
+  const t=tracks[curTrackKey];
+  const wd=document.getElementById('word-display');wd.innerHTML='';
+  const ss=document.createElement('span');ss.className='morph fn-'+t.stem.fn;ss.innerHTML=t.stem.text+'<span class="mlabel">'+t.stem.label+'</span>';wd.appendChild(ss);
+  buildState.forEach(mid=>{const m=t.morphs[mid];const s=document.createElement('span');s.className='morph fn-'+m.fn;s.innerHTML=m.text+'<span class="mlabel">'+m.label+'</span>';wd.appendChild(s);});
+  const g=buildState.length?t.gloss[joinKey()]:t.start;
+  document.getElementById('gloss-en').textContent=g?g.en:'';
+  document.getElementById('gloss-es').textContent=g?g.es:'';
+  const ex=document.getElementById('example-line');
+  if(g&&g.ex){const p=g.ex.split(' — ');ex.innerHTML='<span class="ex-bq">'+p[0]+'</span>'+(p[1]?' &nbsp;—&nbsp; '+p[1]:'');}else ex.innerHTML='';
+  const last=buildState.length?buildState[buildState.length-1]:'START';
+  const nexts=t.rules[last]||[];
+  document.getElementById('build-prompt').textContent=nexts.length?'Tap to add the next ending →':'Complete! Reset to try another path.';
+  const cr=document.getElementById('chip-row');cr.innerHTML='';
+  if(nexts.length){const l=document.createElement('div');l.className='chip-label';l.textContent='available endings';cr.appendChild(l);}
+  nexts.forEach(mid=>{const m=t.morphs[mid];const c=document.createElement('button');c.className='suffix-chip fn-'+m.fn+' bgfn-'+m.fn;c.style.borderColor='var(--c-'+m.fn+')';c.innerHTML='-'+m.text+'<span class="schip-sub">'+m.label+'</span>';c.onclick=()=>{buildState.push(mid);renderBuilder();};cr.appendChild(c);});
+}
+function resetBuild(){buildState=[];renderBuilder();}
+
+/* ============ LEARN: ANATOMY ============ */
+const roleLabel={root:'root / stem',article:'article',doer:'the doer (-k)',compare:'comparison',quant:'quantity / any',describe:'describer (-ko)',demon:'demonstrative',verb:'verb / auxiliary',gram:'particle'};
+const sentences=[
+ {en:'Those tomatoes are riper.',toks:[
+   {t:'Tomate',fn:'root',bq:'tomate',note:'the noun stem — "tomato".'},{sp:1},
+   {t:'horiek',fn:'demon',bq:'horiek',note:'"those" — plural demonstrative (hori → horiek). Follows the noun. Said "hoiek".'},{sp:1},
+   {t:'gorri',fn:'root',bq:'gorri',note:'adjective stem — "red / ripe".'},
+   {t:'ago',fn:'compare',bq:'-ago',note:'comparative "-er". Same job as Spanish "más" — but a suffix, not a separate word.'},
+   {t:'ak',fn:'article',bq:'-ak',note:'plural article "the", agreeing with the tomatoes.'},{sp:1},
+   {t:'daude',fn:'verb',bq:'daude',note:'"they are" (state) — from egon, plural.'}]},
+ {en:'This dictionary is too small.',toks:[
+   {t:'Hiztegi',fn:'root',bq:'hiztegi',note:'noun stem — "dictionary".'},{sp:1},
+   {t:'hau',fn:'demon',bq:'hau',note:'"this" — singular demonstrative.'},{sp:1},
+   {t:'txiki',fn:'root',bq:'txiki',note:'adjective stem — "small".'},
+   {t:'egi',fn:'compare',bq:'-egi',note:'excessive "too". One tidy ending; English needs a whole word.'},
+   {t:'a',fn:'article',bq:'-a',note:'singular article "the".'},{sp:1},
+   {t:'da',fn:'verb',bq:'da',note:'"is" — from izan.'}]},
+ {en:'Naroa has many friends.',toks:[
+   {t:'Naroa',fn:'root',bq:'Naroa',note:'the name — the subject.'},
+   {t:'k',fn:'doer',bq:'-k',note:'the ERGATIVE "doer" marker — appears because Naroa actively does something to an object. Neither English nor Spanish marks this.'},{sp:1},
+   {t:'lagun',fn:'root',bq:'lagun',note:'noun stem — "friend". Bare because a quantifier follows.'},{sp:1},
+   {t:'asko',fn:'quant',bq:'asko',note:'"many" — and note it comes AFTER the noun, unlike English/Spanish.'},{sp:1},
+   {t:'ditu',fn:'verb',bq:'ditu',note:'"she has them" — one word encodes subject AND plural object.'}]},
+ {en:"I haven't any milk.",toks:[
+   {t:'Ez',fn:'gram',bq:'ez',note:'"not" — the negator. It triggers the partitive on the object.'},{sp:1},
+   {t:'daukat',fn:'verb',bq:'daukat',note:'"I have" — from eduki.'},{sp:1},
+   {t:'esne',fn:'root',bq:'esne',note:'noun stem — "milk".'},
+   {t:'rik',fn:'quant',bq:'-rik',note:'the PARTITIVE "any / no", used in negatives & questions. Spanish has no clean equivalent.'}]},
+ {en:'I want a Basque book.',toks:[
+   {t:'Euskaraz',fn:'root',bq:'euskaraz',note:'"in Basque" — an adverb.'},
+   {t:'ko',fn:'describe',bq:'-ko',note:'the DESCRIBER. Turns "in Basque" into an adjective; -ko words go BEFORE the noun.'},{sp:1},
+   {t:'liburu',fn:'root',bq:'liburu',note:'noun stem — "book".'},{sp:1},
+   {t:'bat',fn:'quant',bq:'bat',note:'"a / one" — follows the noun.'},{sp:1},
+   {t:'nahi',fn:'verb',bq:'nahi',note:'"want".'},{sp:1},
+   {t:'dut',fn:'verb',bq:'dut',note:'"I … it" — auxiliary for "I" + singular object.'}]},
+ {en:'Which tomatoes do you want?',toks:[
+   {t:'Zein',fn:'gram',bq:'zein',note:'"which" — has no article, so it doesn\u2019t show number itself.'},{sp:1},
+   {t:'tomate',fn:'root',bq:'tomate',note:'noun stem — unchanged for singular or plural.'},{sp:1},
+   {t:'nahi',fn:'verb',bq:'nahi',note:'"want".'},{sp:1},
+   {t:'dituzu',fn:'verb',bq:'dituzu',note:'"you … them" — the PLURAL-object form. THIS is what signals "tomatoes". Compare duzu (one).'}]}
+];
+function renderAnatomy(){
+  const cont=document.getElementById('anatomy-container');cont.innerHTML='';
+  sentences.forEach((s,si)=>{
+    const box=document.createElement('div');box.className='anat-sentence';
+    const line=document.createElement('div');line.className='anat-line';
+    s.toks.forEach(tk=>{
+      if(tk.sp){const sp=document.createElement('span');sp.className='tok-space';line.appendChild(sp);return;}
+      const el=document.createElement('span');el.className='tok fn-'+tk.fn;el.style.borderBottomColor='var(--c-'+tk.fn+')';el.textContent=tk.t;
+      el.onclick=()=>{document.querySelectorAll('#anatomy-container .tok').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');
+        const d=document.getElementById('anat-detail-'+si);d.classList.remove('empty');
+        d.innerHTML='<span class="d-role bgfn-'+tk.fn+'" style="color:var(--c-'+tk.fn+')">'+roleLabel[tk.fn]+'</span><span><span class="d-bq fn-'+tk.fn+'">'+tk.bq+'</span> — '+tk.note+'</span>';};
+      line.appendChild(el);
+    });
+    box.appendChild(line);
+    const en=document.createElement('div');en.className='anat-en';en.textContent='“'+s.en+'”';box.appendChild(en);
+    const det=document.createElement('div');det.className='anat-detail empty';det.id='anat-detail-'+si;det.textContent='Tap a coloured word to see what its ending does.';box.appendChild(det);
+    cont.appendChild(box);
+  });
+}
+
+/* ============ LEARN: CONTRAST CARDS ============ */
+const contrastCards=[
+ {concept:'Comparative: "cheaper"',rows:[['EN','en','"cheap" → "cheaper" (suffix -er)'],['ES','es','"barato" → "más barato" (separate word)'],['EU','eu','<span class="eu-word">merke</span> → <span class="eu-word">merkeago</span> (suffix -ago)']],note:'Basque works like English — a suffix — not like Spanish\u2019s "más".'},
+ {concept:'The doer\u2019s -k',rows:[['EN','en','"Naroa has friends" — no marking'],['ES','es','"Naroa tiene amigos" — no marking'],['EU','eu','<span class="eu-word">Naroak</span> lagunak ditu — -k on the doer']],note:'Pure Basque. Neither of your languages marks the active doer.'},
+ {concept:'Quantifier order',rows:[['EN','en','"many friends" — before the noun'],['ES','es','"muchos amigos" — before the noun'],['EU','eu','lagun <span class="eu-word">asko</span> — AFTER the noun']],note:'Basque flips it: noun first, then quantity.'},
+ {concept:'"any / none"',rows:[['EN','en','"I haven\u2019t any milk"'],['ES','es','"No tengo leche" — no special word'],['EU','eu','Ez daukat <span class="eu-word">esnerik</span> — suffix -rik']],note:'Basque marks "any/no" with -rik, only in Q & negatives.'},
+ {concept:'"I prefer"',rows:[['EN','en','"I prefer the red one"'],['ES','es','"prefiero" / "me gusta más"'],['EU','eu','<span class="eu-word">Nahiago</span> dut — literally "want-more"']],note:'nahi (want) + -ago (the -er you learned) = "prefer".'},
+ {concept:'these / those',rows:[['EN','en','"this → these"'],['ES','es','"este → estos"'],['EU','eu','<span class="eu-word">hau → hauek</span>, <span class="eu-word">hori → horiek</span>']],note:'Plural marker is -ek. Said "hoiek" in speech.'}
+];
+function renderCards(){
+  const g=document.getElementById('cards-grid');g.innerHTML='';
+  contrastCards.forEach(c=>{
+    const card=document.createElement('div');card.className='flip-card';
+    let back='';c.rows.forEach(r=>{back+='<div class="cmp-row"><span class="cmp-lang cmp-'+r[1]+'">'+r[0]+'</span><span class="cmp-text">'+r[2]+'</span></div>';});
+    back+='<div class="cmp-note">'+c.note+'</div>';
+    card.innerHTML='<div class="flip-inner"><div class="flip-face flip-front"><div class="fc-concept">'+c.concept+'</div><div class="fc-hint">tap to flip</div></div><div class="flip-face flip-back">'+back+'</div></div>';
+    card.onclick=()=>card.classList.toggle('flipped');g.appendChild(card);
+  });
+}
+
+/* ============ LEARN: DECODER ============ */
+const decRows=[
+ {label:'the verb "want"',one:'nahi <span class="hl">duzu</span>',many:'nahi <span class="hl">dituzu</span>',enOne:'Zein tomate nahi duzu? — Which tomato?',enMany:'Zein tomate nahi dituzu? — Which tomatoes?'},
+ {label:'"this / these"',one:'tomate <span class="hl demon">hau</span>',many:'tomate <span class="hl demon">hauek</span>',enOne:'this tomato',enMany:'these tomatoes'},
+ {label:'"I\u2019ll take ___"',one:'<span class="hl demon">hau</span> hartuko <span class="hl">dut</span>',many:'<span class="hl demon">hauek</span> hartuko <span class="hl">ditut</span>',enOne:'I\u2019ll take this one.',enMany:'I\u2019ll take these.'}
+];
+let curNum='one';
+function renderDecoder(){
+  const w=document.getElementById('dec-rows');w.innerHTML='';
+  decRows.forEach(r=>{const row=document.createElement('div');row.className='dec-row';
+    row.innerHTML='<div class="dr-label">'+r.label+'</div><div class="dr-bq">'+(curNum==='one'?r.one:r.many)+'</div><div class="dr-en">'+(curNum==='one'?r.enOne:r.enMany)+'</div>';w.appendChild(row);});
+}
+function setNumber(n){curNum=n;document.getElementById('dec-one').classList.toggle('active',n==='one');document.getElementById('dec-many').classList.toggle('active',n==='many');renderDecoder();}
+function learnTab(i,btn){document.querySelectorAll('#screen-learn .pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#screen-learn .subpanel').forEach((p,idx)=>p.classList.toggle('active',idx===i));window.scrollTo(0,0);}
+
+/* ============ FLASHCARDS ============ */
+let fcSection=SECTIONS[0],fcIndex=0,fcList=[];
+function renderSectionBar(){
+  const bar=document.getElementById('fc-sectionbar');bar.innerHTML='';
+  SECTIONS.forEach(s=>{const b=document.createElement('button');b.className='fc-secbtn'+(s===fcSection?' active':'');b.textContent=s;b.onclick=()=>{fcSection=s;fcIndex=0;renderFlash();};bar.appendChild(b);});
+}
+function renderFlash(){
+  renderSectionBar();
+  fcList=VOCAB.filter(v=>v.s===fcSection);
+  if(fcIndex>=fcList.length)fcIndex=0;
+  const card=document.getElementById('fc-card');card.classList.remove('flipped');
+  const v=fcList[fcIndex];
+  document.getElementById('fc-word').textContent=v.bq;
+  document.getElementById('fc-en').textContent=v.en;
+  // hooks
+  const userHook=mem.hooks[v.bq];
+  let hookHtml='';
+  if(v.hk){const tagcls={link:'tag-link',logic:'tag-logic',hook:'tag-hook'}[v.hk];const tagtxt={link:'real link',logic:'logic',hook:'memory aid'}[v.hk];hookHtml+='<div><span class="hook-tag '+tagcls+'">'+tagtxt+'</span>'+v.hook+'</div>';}
+  if(userHook)hookHtml+='<div style="margin-top:.5rem"><span class="hook-tag tag-mine">yours</span>'+userHook+'</div>';
+  document.getElementById('fc-hook').innerHTML=hookHtml;
+  document.getElementById('hook-edit').value=userHook||'';
+  // status
+  const st=mem.status[v.bq];
+  const stHtml=st==='known'?'<span class="st-known">known</span>':(st==='learning'?'<span class="st-learning">learning</span>':'');
+  document.getElementById('fc-status-front').innerHTML=stHtml;
+  document.getElementById('fc-status-back').innerHTML=stHtml;
+  document.getElementById('fc-counter').textContent=(fcIndex+1)+' / '+fcList.length;
+  updateFcProgText();
+}
+function flipCard(){document.getElementById('fc-card').classList.toggle('flipped');}
+function nextCard(){fcIndex=(fcIndex+1)%fcList.length;renderFlash();}
+function prevCard(){fcIndex=(fcIndex-1+fcList.length)%fcList.length;renderFlash();}
+function rateCard(st){const v=fcList[fcIndex];mem.status[v.bq]=st;saveStore();renderFlash();setTimeout(nextCard,200);}
+function saveHook(){const v=fcList[fcIndex];const val=document.getElementById('hook-edit').value.trim();if(val)mem.hooks[v.bq]=val;else delete mem.hooks[v.bq];saveStore();renderFlash();}
+function updateFcProgText(){let known=0;VOCAB.forEach(v=>{if(mem.status[v.bq]==='known')known++;});const el=document.getElementById('fc-prog-text');if(el)el.textContent=known+' of '+VOCAB.length+' words marked known.';}
+
+/* ============ MATCH GAME ============ */
+let matchSel=null,matchPairs=0,matchTimer=null,matchStart=0;
+function startMatch(){
+  nav('match');
+  document.getElementById('match-done').style.display='none';
+  document.getElementById('match-grid').style.display='grid';
+  document.getElementById('match-best').textContent=mem.best.match?mem.best.match.toFixed(1)+'s':'—';
+  const pool=[...VOCAB].sort(()=>Math.random()-.5).slice(0,5);
+  matchPairs=pool.length;matchSel=null;
+  let items=[];
+  pool.forEach(v=>{items.push({k:v.bq,type:'eu',txt:v.bq});items.push({k:v.bq,type:'en',txt:v.en});});
+  items.sort(()=>Math.random()-.5);
+  const grid=document.getElementById('match-grid');grid.innerHTML='';
+  items.forEach(it=>{const t=document.createElement('div');t.className='match-tile'+(it.type==='eu'?' eu':'');t.textContent=it.txt;t.dataset.k=it.k;
+    t.onclick=()=>matchTap(t);grid.appendChild(t);});
+  matchStart=Date.now();clearInterval(matchTimer);
+  matchTimer=setInterval(()=>{document.getElementById('match-time').textContent=((Date.now()-matchStart)/1000).toFixed(1)+'s';},100);
+}
+function matchTap(t){
+  if(t.classList.contains('done'))return;
+  if(!matchSel){matchSel=t;t.classList.add('sel');return;}
+  if(matchSel===t){t.classList.remove('sel');matchSel=null;return;}
+  if(matchSel.dataset.k===t.dataset.k){
+    matchSel.classList.add('done');t.classList.add('done');matchSel=null;matchPairs--;
+    if(matchPairs===0)finishMatch();
+  }else{
+    const a=matchSel;t.classList.add('wrong');a.classList.add('wrong');
+    setTimeout(()=>{t.classList.remove('wrong','sel');a.classList.remove('wrong','sel');},400);matchSel=null;
+  }
+}
+function finishMatch(){
+  clearInterval(matchTimer);
+  const secs=(Date.now()-matchStart)/1000;
+  let best=mem.best.match;let isBest=false;
+  if(best===null||secs<best){mem.best.match=secs;saveStore();isBest=true;}
+  document.getElementById('match-grid').style.display='none';
+  document.getElementById('match-done').style.display='block';
+  document.getElementById('match-result').textContent=(isBest?'New best! ':'Done! ')+secs.toFixed(1)+'s';
+}
+
+/* ============ BUILD GAME ============ */
+const buildChallenges=[
+ {en:'cheaper',tiles:['merke','ago','en','a'],answer:['merke','ago']},
+ {en:'the cheapest',tiles:['merke','en','ago','a'],answer:['merke','en','a']},
+ {en:'too big',tiles:['handi','egi','ago','a'],answer:['handi','egi','a']},
+ {en:'bigger',tiles:['handi','ago','en','egi'],answer:['handi','ago']},
+ {en:'any wine (negative)',tiles:['ardo','rik','a','ko'],answer:['ardo','rik']},
+ {en:'these (from hau)',tiles:['hau','ek','rik','a'],answer:['hau','ek']},
+ {en:'a Basque ___ (describer)',tiles:['euskaraz','ko','en','a'],answer:['euskaraz','ko']},
+ {en:'Naroa as the doer',tiles:['Naroa','k','rik','ek'],answer:['Naroa','k']}
+];
+let bgQueue=[],bgCur=null,bgSlot=[],bgScore=0,bgTotal=0;
+function startBuild(){
+  bgQueue=[...buildChallenges].sort(()=>Math.random()-.5);bgScore=0;bgTotal=0;
+  document.getElementById('build-score').textContent='0';
+  document.getElementById('build-total').textContent=bgQueue.length;
+  nextBuild();
+}
+function nextBuild(){
+  if(bgQueue.length===0){
+    document.getElementById('bg-target-en').textContent='Done! '+bgScore+'/'+bgTotal;
+    document.getElementById('bg-tiles').innerHTML='';document.getElementById('bg-slot').innerHTML='';document.getElementById('bg-slot').classList.add('empty');
+    document.getElementById('bg-feedback').textContent='Great work.';document.getElementById('bg-feedback').className='bg-feedback ok';return;
+  }
+  bgCur=bgQueue.shift();bgSlot=[];
+  document.getElementById('bg-target-en').textContent=bgCur.en;
+  document.getElementById('bg-feedback').textContent='';document.getElementById('bg-feedback').className='bg-feedback';
+  renderBuildSlot();
+  const tiles=document.getElementById('bg-tiles');tiles.innerHTML='';
+  [...bgCur.tiles].sort(()=>Math.random()-.5).forEach(tile=>{
+    const b=document.createElement('button');b.className='bg-tile';b.textContent=tile;
+    b.onclick=()=>{if(b.classList.contains('used'))return;bgSlot.push(tile);b.classList.add('used');b._tile=b;renderBuildSlot();};
+    tiles.appendChild(b);
+  });
+}
+function renderBuildSlot(){
+  const slot=document.getElementById('bg-slot');slot.innerHTML='';slot.classList.toggle('empty',bgSlot.length===0);
+  bgSlot.forEach((tile,i)=>{const s=document.createElement('span');s.className='morph fn-root';s.textContent=tile;
+    s.onclick=()=>{bgSlot.splice(i,1);// re-enable a matching tile
+      const used=[...document.querySelectorAll('#bg-tiles .bg-tile.used')];const m=used.find(u=>u.textContent===tile);if(m)m.classList.remove('used');renderBuildSlot();};
+    slot.appendChild(s);});
+}
+function clearBuild(){bgSlot=[];document.querySelectorAll('#bg-tiles .bg-tile').forEach(b=>b.classList.remove('used'));renderBuildSlot();}
+function checkBuild(){
+  if(!bgCur||bgSlot.length===0)return;
+  const fb=document.getElementById('bg-feedback');bgTotal++;
+  if(JSON.stringify(bgSlot)===JSON.stringify(bgCur.answer)){
+    bgScore++;fb.textContent='✓ '+bgSlot.join('')+' — correct!';fb.className='bg-feedback ok';
+    document.getElementById('build-score').textContent=bgScore;
+    setTimeout(nextBuild,900);
+  }else{
+    fb.textContent='✗ try again — tap a tile in the slot to remove it';fb.className='bg-feedback no';
+  }
+}
+
+/* ============ SPEED GAME ============ */
+let spQueue=[],spIdx=0,spStreak=0,spScore=0;
+function startSpeed(){
+  nav('speed');
+  document.getElementById('sp-done').style.display='none';
+  document.getElementById('sp-options').style.display='grid';
+  document.getElementById('sp-word').style.display='block';
+  document.getElementById('sp-best').textContent=mem.best.speed!=null?mem.best.speed:'—';
+  spQueue=[...VOCAB].sort(()=>Math.random()-.5).slice(0,10);spIdx=0;spStreak=0;spScore=0;
+  document.getElementById('sp-streak').textContent='0';
+  showSpeedQ();
+}
+function showSpeedQ(){
+  if(spIdx>=spQueue.length)return finishSpeed();
+  const v=spQueue[spIdx];
+  document.getElementById('sp-qnum').textContent=spIdx+1;
+  document.getElementById('sp-word').textContent=v.bq;
+  const opts=[v.en];
+  const others=[...VOCAB].filter(x=>x.en!==v.en).sort(()=>Math.random()-.5).slice(0,3).map(x=>x.en);
+  const all=[...opts,...others].sort(()=>Math.random()-.5);
+  const box=document.getElementById('sp-options');box.innerHTML='';
+  all.forEach(o=>{const b=document.createElement('button');b.className='sp-opt';b.textContent=o;
+    b.onclick=()=>speedAnswer(b,o===v.en,box,v.en);box.appendChild(b);});
+}
+function speedAnswer(btn,correct,box,right){
+  box.querySelectorAll('.sp-opt').forEach(b=>{b.style.pointerEvents='none';if(b.textContent===right)b.classList.add('correct');});
+  if(correct){spScore++;spStreak++;}else{btn.classList.add('wrong');spStreak=0;}
+  document.getElementById('sp-streak').textContent=spStreak;
+  spIdx++;setTimeout(showSpeedQ,650);
+}
+function finishSpeed(){
+  document.getElementById('sp-word').style.display='none';
+  document.getElementById('sp-options').style.display='none';
+  document.getElementById('sp-done').style.display='block';
+  let isBest=false;if(mem.best.speed==null||spScore>mem.best.speed){mem.best.speed=spScore;saveStore();isBest=true;}
+  document.getElementById('sp-result').textContent=(isBest?'New best! ':'')+spScore+' / 10 correct';
+}
+
+/* ============ BACKUP ============ */
+function exportData(){
+  const blob=new Blob([JSON.stringify(mem,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download='euskara-backup.json';a.click();URL.revokeObjectURL(url);
+  document.getElementById('backup-msg').textContent='Backup downloaded.';
+}
+function importData(e){
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);mem=Object.assign({hooks:{},status:{},best:{match:null,speed:null}},d);saveStore();document.getElementById('backup-msg').textContent='Backup restored.';updateHomeProgress();}catch(err){document.getElementById('backup-msg').style.color='var(--c-doer)';document.getElementById('backup-msg').textContent='Could not read that file.';}};
+  r.readAsText(f);
+}
+function resetAll(){
+  if(confirm('Erase all saved progress and hooks on this device?')){mem={hooks:{},status:{},best:{match:null,speed:null}};saveStore();document.getElementById('backup-msg').textContent='All progress cleared.';updateHomeProgress();}
+}
+
+/* ============ INIT ============ */
+renderTrackButtons();renderBuilder();renderAnatomy();renderCards();renderDecoder();updateHomeProgress();
+</script>
+</body>
+</html>
