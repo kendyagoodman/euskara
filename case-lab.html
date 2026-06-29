@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#232a32">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Kasu Laborategia · Basque Case Lab</title>
+<style>
+  :root{
+    /* Slate, bone & madder — a Gipuzkoan workbench */
+    --slate:#232a32;        /* the bench (dark header/spine) */
+    --slate-2:#2d353f;
+    --paper:#f3eee2;        /* the working surface */
+    --paper-2:#ebe4d4;
+    --card:#fbf8f0;
+    --ink:#222831;
+    --ink-soft:#5c6470;
+    --line:#d6ccb6;
+    --line-dk:#3a434e;
+    --madder:#bb3a2e;       /* gorria — the action */
+    --madder-dk:#902a20;
+    --pine:#356b53;         /* correct */
+    --pine-soft:#e2ece3;
+    --ochre:#bd8a26;        /* memory-aid highlight */
+    --label:#6f8a86;        /* specimen-label teal */
+    --font-mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+    --font-ui:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --radius:10px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:var(--font-ui);
+    color:var(--ink);
+    background:var(--paper);
+    line-height:1.45;
+    -webkit-text-size-adjust:100%;
+  }
+  /* ---------- The bench (header) ---------- */
+  .bench{
+    background:var(--slate);
+    color:var(--paper);
+    padding:14px 16px calc(14px + env(safe-area-inset-bottom,0)) 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0));
+    border-bottom:3px solid var(--madder);
+  }
+  .brand{
+    font-family:var(--font-mono);
+    font-size:12px; letter-spacing:.22em; text-transform:uppercase;
+    color:#cdbfa3; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap;
+  }
+  .brand b{color:var(--paper); letter-spacing:.16em}
+  .brand .en{color:#8a93a0; letter-spacing:.04em; text-transform:none; font-family:var(--font-ui); font-size:11px}
+  /* the question-word spine (the master mnemonic) */
+  .spine{margin-top:12px}
+  .spine-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:7px;
+    font-size:11px; color:#8a93a0; letter-spacing:.04em;
+  }
+  .runbtn{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:.08em;
+    color:var(--paper); background:transparent; border:1px solid #4b5563;
+    border-radius:999px; padding:3px 11px; cursor:pointer;
+  }
+  .runbtn:hover{border-color:var(--madder); color:#fff}
+  .ladder{display:flex; flex-wrap:wrap; gap:6px}
+  .rung{
+    font-family:var(--font-mono); font-size:13px; letter-spacing:.02em;
+    color:#dfd6c2; background:var(--slate-2); border:1px solid var(--line-dk);
+    border-radius:7px; padding:5px 9px; cursor:pointer; transition:transform .12s, background .12s, color .12s;
+  }
+  .rung:hover{color:#fff; border-color:#5a6573}
+  .rung .sfx{color:var(--madder); font-weight:600}
+  .rung.lit{background:var(--madder); border-color:var(--madder); color:#fff; transform:translateY(-2px)}
+  .rung .sep{opacity:.4; margin:0 2px}
+  /* slashes that group the three tiers in the chant */
+  .ladder .grp{display:flex; gap:6px}
+  .ladder .slash{color:#566; align-self:center; font-family:var(--font-mono); opacity:.5}
+
+  /* ---------- Working surface ---------- */
+  main{max-width:760px; margin:0 auto; padding:16px 16px 64px}
+  .modebar{
+    display:flex; gap:4px; background:var(--paper-2); border:1px solid var(--line);
+    border-radius:12px; padding:4px; margin-bottom:18px;
+  }
+  .modebar button{
+    flex:1; font-family:var(--font-ui); font-size:13.5px; font-weight:600;
+    color:var(--ink-soft); background:transparent; border:0; border-radius:9px;
+    padding:9px 6px; cursor:pointer;
+  }
+  .modebar button[aria-selected="true"]{background:var(--slate); color:var(--paper)}
+  .modebar button:focus-visible{outline:2px solid var(--madder); outline-offset:2px}
+
+  section[hidden]{display:none}
+
+  /* honest-tag chips */
+  .tag{
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:.06em; text-transform:uppercase;
+    border-radius:5px; padding:2px 7px; font-weight:600; white-space:nowrap;
+  }
+  .tag.real{background:#e2ece3; color:#2c5e47; border:1px solid #b9d4c2}
+  .tag.logic{background:#e6e9ef; color:#3c4656; border:1px solid #c4ccd9}
+  .tag.aid{background:#f6eccf; color:#8a6411; border:1px solid #e2cf95}
+
+  /* ---------- Memoriser ---------- */
+  .specimen{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    box-shadow:0 1px 0 #fff inset, 0 10px 24px -18px rgba(40,30,10,.5);
+    padding:22px 20px 20px; position:relative; overflow:hidden;
+  }
+  .tier-badge{
+    position:absolute; top:0; right:0;
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+    color:#fff; background:var(--label); padding:5px 12px; border-bottom-left-radius:12px;
+  }
+  .tier-badge.t1{background:#3a4a55}
+  .tier-badge.t2{background:#6c7d56}
+  .tier-badge.t3{background:#5a6f86}
+  .tier-badge.tx{background:var(--ochre)}
+  .q-word{
+    font-family:var(--font-mono); font-weight:700; letter-spacing:.01em;
+    font-size:clamp(34px,9vw,52px); line-height:1; color:var(--ink); margin:6px 0 2px;
+  }
+  .q-gloss{color:var(--ink-soft); font-size:14px; margin-bottom:16px}
+  .q-gloss .em{color:var(--madder); font-style:normal; font-weight:600}
+  .meaning-row{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:6px}
+  .sfx-chip{
+    font-family:var(--font-mono); font-weight:700; font-size:20px; color:#fff;
+    background:var(--madder); border-radius:8px; padding:5px 12px;
+  }
+  .sfx-chip.zero{background:var(--slate)}
+  .role{font-size:14px; color:var(--ink); max-width:48ch}
+  .eng-equiv{font-family:var(--font-mono); color:var(--pine); font-size:13px; margin:2px 0 16px}
+
+  /* component assembly display (root + suffix = form) */
+  .assembly{
+    display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+    background:var(--paper); border:1px dashed var(--line); border-radius:12px;
+    padding:14px; margin-bottom:14px;
+  }
+  .token{
+    font-family:var(--font-mono); font-size:18px; padding:8px 12px; border-radius:8px;
+    border:1px solid var(--line); background:#fff;
+  }
+  .token.root{color:var(--ink)}
+  .token.sfx{color:var(--madder); border-color:#e3b6af; background:#fbeeec; font-weight:700}
+  .token.sfx.zero{color:var(--ink-soft); border-style:dashed; background:transparent}
+  .op{font-family:var(--font-mono); font-size:18px; color:var(--ink-soft)}
+  .token.form{
+    color:#fff; background:var(--slate); border-color:var(--slate); font-weight:700;
+    position:relative;
+  }
+  .gloss-en{font-size:13px; color:var(--ink-soft); margin-left:2px}
+
+  .hook{
+    display:flex; gap:11px; align-items:flex-start;
+    background:#fffdf7; border-left:3px solid var(--ochre); border-radius:0 10px 10px 0;
+    padding:11px 13px; font-size:13.5px; color:var(--ink);
+  }
+  .hook .htext{flex:1}
+  .hook.none{border-left-color:var(--line); color:var(--ink-soft); font-style:italic}
+
+  .nav{display:flex; align-items:center; justify-content:space-between; margin-top:16px; gap:10px}
+  .dotrow{display:flex; gap:5px; flex-wrap:wrap; flex:1; justify-content:center}
+  .dot{width:8px; height:8px; border-radius:50%; background:var(--line); border:0; padding:0; cursor:pointer}
+  .dot.on{background:var(--madder); transform:scale(1.25)}
+  .arrow{
+    font-family:var(--font-mono); font-size:14px; font-weight:600;
+    background:var(--slate); color:var(--paper); border:0; border-radius:9px;
+    padding:10px 16px; cursor:pointer; min-width:88px;
+  }
+  .arrow:disabled{opacity:.3; cursor:default}
+  .arrow.ghost{background:transparent; color:var(--ink); border:1px solid var(--line)}
+
+  /* ---------- Lab ---------- */
+  .labhead{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; gap:12px}
+  .labhead h2{font-size:16px; margin:0}
+  .score{font-family:var(--font-mono); font-size:13px; color:var(--ink-soft)}
+  .score b{color:var(--pine)}
+  .progressbar{height:6px; background:var(--paper-2); border-radius:99px; overflow:hidden; margin-bottom:18px; border:1px solid var(--line)}
+  .progressbar i{display:block; height:100%; background:var(--madder); width:0; transition:width .3s}
+
+  .prompt-card{
+    background:var(--card); border:1px solid var(--line); border-radius:16px; padding:20px 18px;
+    box-shadow:0 10px 24px -20px rgba(40,30,10,.5);
+  }
+  .build-this{font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--label); font-family:var(--font-mono)}
+  .prompt-en{font-size:clamp(22px,6vw,30px); font-weight:600; margin:4px 0 4px}
+  .prompt-hint{font-size:13px; color:var(--ink-soft); margin-bottom:18px}
+
+  .workbench{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:var(--paper); border:1px dashed var(--line); border-radius:12px;
+    padding:16px; min-height:64px; margin-bottom:16px;
+  }
+  .wb-root{font-family:var(--font-mono); font-size:22px; padding:9px 13px; background:#fff; border:1px solid var(--line); border-radius:9px}
+  .slot{
+    font-family:var(--font-mono); font-size:22px; padding:9px 16px; min-width:64px; text-align:center;
+    border:2px dashed var(--line); border-radius:9px; color:var(--ink-soft); background:transparent;
+  }
+  .slot.filled{border-style:solid; border-color:var(--madder); color:var(--madder); background:#fbeeec; font-weight:700}
+  .slot.good{border-color:var(--pine); color:var(--pine); background:var(--pine-soft)}
+  .seam{width:3px; align-self:stretch; background:transparent; border-radius:2px}
+  .fuse .seam{animation:seamglow .5s ease}
+  @keyframes seamglow{0%{background:var(--madder)}100%{background:transparent}}
+  .wb-op{font-family:var(--font-mono); color:var(--ink-soft); font-size:18px}
+
+  .options{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:6px}
+  .opt{
+    font-family:var(--font-mono); font-size:19px; font-weight:700; color:var(--madder);
+    background:#fff; border:1px solid #e3b6af; border-radius:10px; padding:11px 16px; cursor:pointer;
+    transition:transform .1s;
+  }
+  .opt:hover{transform:translateY(-2px)}
+  .opt:disabled{opacity:.4; cursor:default; transform:none}
+  .opt.wrong{animation:shake .35s; border-color:var(--madder); background:#f7dcd8}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+  .reveal{margin-top:16px}
+  .reveal[hidden]{display:none}
+  .reveal-form{
+    font-family:var(--font-mono); font-size:clamp(24px,7vw,34px); font-weight:700; color:var(--pine);
+    display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;
+  }
+  .reveal-form .qw{font-size:14px; color:#fff; background:var(--label); padding:3px 10px; border-radius:6px; font-weight:600}
+  .reveal-en{color:var(--ink-soft); font-size:14px; margin:4px 0 12px}
+  .next-btn{
+    font-family:var(--font-mono); font-weight:600; font-size:14px; color:var(--paper);
+    background:var(--madder); border:0; border-radius:10px; padding:12px 22px; cursor:pointer; margin-top:6px;
+  }
+  .roundend{text-align:center; padding:20px 10px}
+  .roundend .big{font-family:var(--font-mono); font-size:40px; color:var(--pine); font-weight:700}
+
+  /* ---------- Reference ---------- */
+  .legend{
+    display:flex; gap:14px; flex-wrap:wrap; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:12px 14px; margin-bottom:18px; font-size:12.5px; color:var(--ink-soft);
+  }
+  .legend div{display:flex; gap:7px; align-items:center}
+  .reftier{margin-bottom:18px}
+  .reftier h3{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--label); margin:0 0 8px; padding-bottom:6px; border-bottom:1px solid var(--line);
+  }
+  table.ref{width:100%; border-collapse:collapse; font-size:13.5px}
+  table.ref td{padding:8px 8px; border-bottom:1px solid var(--line); vertical-align:top}
+  table.ref .qcell{font-family:var(--font-mono); font-weight:700; color:var(--ink); white-space:nowrap}
+  table.ref .scell{font-family:var(--font-mono); color:var(--madder); font-weight:700; white-space:nowrap}
+  table.ref .ecell{color:var(--ink-soft)}
+  table.ref .xcell{font-family:var(--font-mono); color:var(--ink)}
+
+  footer{max-width:760px; margin:0 auto; padding:0 16px 40px; color:var(--ink-soft); font-size:12px}
+  footer code{font-family:var(--font-mono); background:var(--paper-2); padding:1px 5px; border-radius:4px}
+
+  @media (max-width:520px){
+    .role{font-size:13px}
+    .arrow{min-width:72px; padding:10px 12px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important; animation:none !important}
+  }
+</style>
+</head>
+<body>
+<header class="bench">
+  <div class="brand"><b>KASU LABORATEGIA</b> <span class="en">Basque Case Laboratory</span></div>
+  <div class="spine">
+    <div class="spine-head">
+      <span>The master chant · tap a word to study it</span>
+      <button class="runbtn" id="runChant" type="button">▷ Run chant</button>
+    </div>
+    <div class="ladder" id="ladder"></div>
+  </div>
+</header>
+
+<main>
+  <div class="modebar" role="tablist" aria-label="Mode">
+    <button role="tab" id="tab-mem" aria-selected="true" aria-controls="memoriser">1 · Memoriser</button>
+    <button role="tab" id="tab-lab" aria-selected="false" aria-controls="lab">2 · Build lab</button>
+    <button role="tab" id="tab-ref" aria-selected="false" aria-controls="reference">Reference</button>
+  </div>
+
+  <!-- ========== MEMORISER ========== -->
+  <section id="memoriser" role="tabpanel" aria-labelledby="tab-mem">
+    <div class="specimen" id="spec">
+      <div class="tier-badge" id="tierBadge"></div>
+      <div class="q-word" id="qWord"></div>
+      <div class="q-gloss" id="qGloss"></div>
+      <div class="meaning-row">
+        <span class="sfx-chip" id="sfxChip"></span>
+        <span class="role" id="roleTxt"></span>
+      </div>
+      <div class="eng-equiv" id="engEquiv"></div>
+      <div class="assembly" id="assembly"></div>
+      <div class="hook" id="hookBox"></div>
+    </div>
+    <div class="nav">
+      <button class="arrow ghost" id="prevCard" type="button">‹ Prev</button>
+      <div class="dotrow" id="dots"></div>
+      <button class="arrow" id="nextCard" type="button">Next ›</button>
+    </div>
+  </section>
+
+  <!-- ========== LAB ========== -->
+  <section id="lab" role="tabpanel" aria-labelledby="tab-lab" hidden>
+    <div class="labhead">
+      <h2>Build the word from its parts</h2>
+      <div class="score">Round: <b id="scoreNum">0</b>/<span id="scoreTot">6</span></div>
+    </div>
+    <div class="progressbar"><i id="prog"></i></div>
+    <div id="labBody"></div>
+  </section>
+
+  <!-- ========== REFERENCE ========== -->
+  <section id="reference" role="tabpanel" aria-labelledby="tab-ref" hidden>
+    <div class="legend">
+      <strong style="color:var(--ink)">Hook honesty:</strong>
+      <div><span class="tag real">real link</span> a genuine connection</div>
+      <div><span class="tag logic">logic</span> follows from the rule</div>
+      <div><span class="tag aid">memory aid</span> invented crutch, no real basis</div>
+    </div>
+    <div id="refBody"></div>
+  </section>
+</main>
+
+<footer>
+  Grammar from stable knowledge of Basque (no internet research — no hallucination-risk tag). Forms shown are <b>definite singular</b>; place names take locatives directly. Drop-in module for <code>euskara</code> — works offline, no external dependencies.
+</footer>
+
+<script>
+/* ---------------- DATA ---------------- */
+// honest hook tags: real | logic | aid
+const CASES = [
+  { tier:1, q:"Nor?",       gloss:["who / what", "— just being, or being acted on"], sfx:"–a", zero:false,
+    role:"The intransitive subject AND the direct object. The 'resting' case.",
+    eng:"absolutive · the subject / the object",
+    ex:{root:"gizon", sfx:"a", form:"gizona", en:"the man (sleeps / is seen)"},
+    hook:{tag:"logic", text:"If the verb just describes the noun, or the noun is the thing being acted on, it stays bare — only the article –a."} },
+
+  { tier:1, q:"Nork?",      gloss:["who (the doer)", "— of a verb that hits something"], sfx:"–k", zero:false,
+    role:"The subject of a transitive verb — the one doing the action onto something.",
+    eng:"ergative · the doer",
+    ex:{root:"gizon", sfx:"ak", form:"gizonak", en:"the man (sees the dog)"},
+    hook:{tag:"aid", text:"The –k is the KICKER: it marks the one who kicks the action onto something else. No object being acted on → no kick → no –k."} },
+
+  { tier:1, q:"Nori?",      gloss:["to / for whom"], sfx:"–(r)i", zero:false,
+    role:"The indirect object — the recipient of the action.",
+    eng:"dative · to whom",
+    ex:{root:"lagun", sfx:"ari", form:"lagunari", en:"to the friend (I give it)"},
+    hook:{tag:"logic", text:"Whoever receives or benefits from the verb's result. 'Nori' = 'to whom' — the question is the rule."} },
+
+  { tier:2, q:"Noren?",     gloss:["whose / of"], sfx:"–(r)en", zero:false,
+    role:"Possession — whose thing it is, or 'of' something.",
+    eng:"genitive · 's / of",
+    ex:{root:"lagun", sfx:"aren", form:"lagunaren", en:"the friend's (book)"},
+    hook:{tag:"logic", text:"This is the parent suffix: –entzat (for) and several others are built on top of –en. Nail it and three more get easier."} },
+
+  { tier:2, q:"Norentzat?", gloss:["for whom (benefit)"], sfx:"–(r)entzat", zero:false,
+    role:"For someone's benefit — the recipient who gains.",
+    eng:"benefactive · for",
+    ex:{root:"lagun", sfx:"arentzat", form:"lagunarentzat", en:"for the friend"},
+    hook:{tag:"real", text:"It literally contains the genitive –en you just learned: 'the friend's-for' → 'for the friend'. Built, not memorised."} },
+
+  { tier:2, q:"Norekin?",   gloss:["with whom"], sfx:"–(r)ekin", zero:false,
+    role:"Accompaniment — who or what you're with.",
+    eng:"comitative · with",
+    ex:{root:"lagun", sfx:"arekin", form:"lagunarekin", en:"with the friend"},
+    hook:{tag:"aid", text:"–kin sounds like English 'kin' — the people you keep company WITH. (Coincidence, but it sticks.)"} },
+
+  { tier:2, q:"Zertaz? / –z", gloss:["by what means / about what"], sfx:"–(e)z", zero:false,
+    role:"By means of, about, or in (a language). The 'how / with-what' case.",
+    eng:"instrumental · by / about",
+    ex:{root:"tren", sfx:"ez", form:"trenez", en:"by train (also: euskaraz = in Basque)"},
+    hook:{tag:"logic", text:"By train, by hand (eskuz), in Basque (euskaraz) — the instrument or medium of the action."} },
+
+  { tier:2, q:"Zergatik?",  gloss:["why / because of what"], sfx:"–(a)gatik", zero:false,
+    role:"The cause — because of something.",
+    eng:"causal · because of",
+    ex:{root:"diru", sfx:"agatik", form:"diruagatik", en:"because of the money"},
+    hook:{tag:"real", text:"Zergatik IS the everyday word for 'why'. The 'because' case names itself — a free vocab word."} },
+
+  { tier:3, q:"Non?",       gloss:["where"], sfx:"–(e)an / –n", zero:false,
+    role:"In or at a place. The first rung of the place-grid.",
+    eng:"inessive · in / at",
+    ex:{root:"etxe", sfx:"an", form:"etxean", en:"in the house (Bilbo→Bilbon)"},
+    hook:{tag:"real", text:"English once had this grid too: WHERE / whither / whence. Non = WHERE. Use your own language's lost symmetry."} },
+
+  { tier:3, q:"Nora?",      gloss:["where to"], sfx:"–(e)ra", zero:false,
+    role:"Motion towards a place.",
+    eng:"allative · to",
+    ex:{root:"etxe", sfx:"ra", form:"etxera", en:"to the house (Bilbo→Bilbora)"},
+    hook:{tag:"real", text:"Nora = WHITHER ('to where'). The –ra has the 'r' of English th-r → whitheR. Direction toward."} },
+
+  { tier:3, q:"Nondik?",    gloss:["where from"], sfx:"–(e)tik", zero:false,
+    role:"Motion away from a place.",
+    eng:"ablative · from",
+    ex:{root:"etxe", sfx:"tik", form:"etxetik", en:"from the house (Bilbo→Bilbotik)"},
+    hook:{tag:"real", text:"Nondik = WHENCE ('from where'). Where / whither / whence ↔ Non / Nora / Nondik. The whole grid in one breath."} },
+
+  { tier:3, q:"Noraino?",   gloss:["how far / up to where"], sfx:"–(e)raino", zero:false,
+    role:"As far as, up to a limit.",
+    eng:"terminative · as far as",
+    ex:{root:"Bilbo", sfx:"raino", form:"Bilboraino", en:"as far as Bilbao"},
+    hook:{tag:"logic", text:"Built on Nora ('to') pushed to its endpoint: 'to' → 'all the way to'."} },
+
+  { tier:3, q:"Norako?",    gloss:["bound for where"], sfx:"–(e)rako", zero:false,
+    role:"Destined for / bound for a place (used like an adjective).",
+    eng:"directional · bound for",
+    ex:{root:"Bilbo", sfx:"rako", form:"Bilborako", en:"the Bilbao-bound (train)"},
+    hook:{tag:"logic", text:"Nora ('to') + –ko ('of') = 'the to-there one' → bound for there."} },
+
+  { tier:3, q:"Nongo?",     gloss:["of where (which place's)"], sfx:"–(e)ko", zero:false,
+    role:"Of a place, turned into an adjective.",
+    eng:"locative-genitive · of (a place)",
+    ex:{root:"Bilbo", sfx:"ko", form:"Bilboko", en:"Bilbao's (Bilboko kalea = a Bilbao street)"},
+    hook:{tag:"logic", text:"Turns a place into a describing word: Bilboko = 'Bilbao-ish / of Bilbao'. Pairs with Non."} },
+
+  { tier:"x", q:"Zer...ik?", gloss:["any / none"], sfx:"–(r)ik", zero:false,
+    role:"The partitive — appears in negatives & questions where English uses 'any' or 'none'.",
+    eng:"partitive · any / none",
+    ex:{root:"arazo", sfx:"rik", form:"arazorik", en:"ez dago arazorik = there's no problem (at all)"},
+    hook:{tag:"logic", text:"Shows up exactly where English reaches for 'any/none': 'is there any...?', 'there isn't any...'."} },
+];
+
+// chant = Tier-1 trio / Tier-2 trio / place trio  (the spine)
+const CHANT = ["Nor?","Nork?","Nori?","Noren?","Norentzat?","Norekin?","Non?","Nora?","Nondik?"];
+const CHANT_GROUPS = [[0,3],[3,6],[6,9]]; // slices for the three groups
+
+// LAB pool — EN→Basque production, short phrases, build from a root + suffix tile
+const POOL = [
+  {en:"to Bilbao",            root:"Bilbo",  ans:"ra",    form:"Bilbora",       qw:"Nora?",   opts:["ra","tik","an"],  hook:"–ra = motion towards. Whither."},
+  {en:"from Bilbao",          root:"Bilbo",  ans:"tik",   form:"Bilbotik",      qw:"Nondik?", opts:["tik","ra","ko"],  hook:"–tik = motion away. Whence."},
+  {en:"of Bilbao (a street)", root:"Bilbo",  ans:"ko",    form:"Bilboko",       qw:"Nongo?",  opts:["ko","ra","tik"],  hook:"–ko turns a place into an adjective."},
+  {en:"as far as Bilbao",     root:"Bilbo",  ans:"raino", form:"Bilboraino",    qw:"Noraino?",opts:["raino","ra","tik"],hook:"Nora pushed to its limit."},
+  {en:"to the house",         root:"etxe",   ans:"ra",    form:"etxera",        qw:"Nora?",   opts:["ra","tik","an"],  hook:"Same –ra, vowel root."},
+  {en:"from the house",       root:"etxe",   ans:"tik",   form:"etxetik",       qw:"Nondik?", opts:["tik","ra","an"],  hook:"–tik = from."},
+  {en:"in the house",         root:"etxe",   ans:"an",    form:"etxean",        qw:"Non?",    opts:["an","ra","tik"],  hook:"–an / –n = in / at."},
+  {en:"in Zarautz",           root:"Zarautz",ans:"en",    form:"Zarautzen",     qw:"Non?",    opts:["en","era","tik"], hook:"Consonant-ending place → inessive –en."},
+  {en:"to Zarautz",           root:"Zarautz",ans:"era",   form:"Zarautzera",    qw:"Nora?",   opts:["era","en","tik"], hook:"Consonant-ending place → allative –era."},
+  {en:"the friend's (book)",  root:"lagun",  ans:"aren",  form:"lagunaren",     qw:"Noren?",  opts:["aren","ari","arekin"], hook:"–(r)en = 's / of."},
+  {en:"for the friend",       root:"lagun",  ans:"arentzat",form:"lagunarentzat",qw:"Norentzat?",opts:["arentzat","aren","arekin"], hook:"Genitive –en + tzat = 'for'."},
+  {en:"with the friend",      root:"lagun",  ans:"arekin", form:"lagunarekin",  qw:"Norekin?",opts:["arekin","aren","ari"], hook:"–kin = with ('kin')."},
+  {en:"to the friend (give)", root:"lagun",  ans:"ari",    form:"lagunari",     qw:"Nori?",   opts:["ari","aren","arekin"], hook:"–(r)i = indirect object."},
+  {en:"by train",             root:"tren",   ans:"ez",     form:"trenez",       qw:"Zertaz?", opts:["ez","tik","ra"],  hook:"–ez = by means of."},
+  {en:"in Basque (language)", root:"euskara",ans:"z",      form:"euskaraz",     qw:"–z",      opts:["z","ko","ra"],    hook:"–z = in / by. euskaraz = in Basque."},
+  {en:"because of the money", root:"diru",   ans:"agatik", form:"diruagatik",   qw:"Zergatik?",opts:["agatik","aren","az"], hook:"–(a)gatik = because of."},
+  {en:"the man (sees the dog)",root:"gizon", ans:"ak",     form:"gizonak",      qw:"Nork?",   opts:["ak","a","ari"],   hook:"Ergative –k: he acts on the dog."},
+  {en:"the man (sleeps)",     root:"gizon",  ans:"a",      form:"gizona",       qw:"Nor?",    opts:["a","ak","ari"],   hook:"Absolutive: just being. Bare + article."},
+  {en:"there's no problem",   root:"arazo",  ans:"rik",    form:"arazorik",     qw:"Zer..ik?",opts:["rik","ra","an"],  hook:"Partitive –rik: 'any / none'."},
+];
+
+/* ---------------- MEMORISER ---------------- */
+let ci = 0;
+const tierBadge=document.getElementById('tierBadge'), qWord=document.getElementById('qWord'),
+      qGloss=document.getElementById('qGloss'), sfxChip=document.getElementById('sfxChip'),
+      roleTxt=document.getElementById('roleTxt'), engEquiv=document.getElementById('engEquiv'),
+      assembly=document.getElementById('assembly'), hookBox=document.getElementById('hookBox'),
+      dots=document.getElementById('dots');
+
+const TIER_LABEL = {1:"Tier 1 · core",2:"Tier 2 · relational",3:"Tier 3 · place grid","x":"Extra"};
+const TIER_CLS = {1:"t1",2:"t2",3:"t3","x":"tx"};
+
+function renderCard(){
+  const c = CASES[ci];
+  tierBadge.textContent = TIER_LABEL[c.tier];
+  tierBadge.className = "tier-badge "+TIER_CLS[c.tier];
+  qWord.textContent = c.q;
+  qGloss.innerHTML = c.gloss.map(g=>g.replace(/(who|what|whom|where|why|how far)/i,'<span class="em">$1</span>')).join(' &nbsp;·&nbsp; ');
+  sfxChip.textContent = c.sfx;
+  sfxChip.className = "sfx-chip"+(c.zero?" zero":"");
+  roleTxt.textContent = c.role;
+  engEquiv.textContent = "≈ "+c.eng;
+  assembly.innerHTML =
+    '<span class="token root">'+c.ex.root+'</span>'+
+    '<span class="op">+</span>'+
+    '<span class="token sfx">–'+c.ex.sfx+'</span>'+
+    '<span class="op">=</span>'+
+    '<span class="token form">'+c.ex.form+'</span>'+
+    '<span class="gloss-en">'+c.ex.en+'</span>';
+  if(c.hook){
+    hookBox.className="hook";
+    hookBox.innerHTML='<span class="tag '+tagCls(c.hook.tag)+'">'+c.hook.tag+'</span><span class="htext">'+c.hook.text+'</span>';
+  }else{
+    hookBox.className="hook none";
+    hookBox.innerHTML='No special hook — this one is best learned by use.';
+  }
+  [...dots.children].forEach((d,i)=>d.classList.toggle('on',i===ci));
+  document.getElementById('prevCard').disabled = ci===0;
+  document.getElementById('nextCard').disabled = ci===CASES.length-1;
+}
+function tagCls(t){return t==="real"?"real":t==="logic"?"logic":"aid";}
+function buildDots(){
+  dots.innerHTML="";
+  CASES.forEach((_,i)=>{
+    const b=document.createElement('button');
+    b.className="dot"; b.setAttribute('aria-label','Card '+(i+1));
+    b.onclick=()=>{ci=i;renderCard();};
+    dots.appendChild(b);
+  });
+}
+document.getElementById('prevCard').onclick=()=>{if(ci>0){ci--;renderCard();}};
+document.getElementById('nextCard').onclick=()=>{if(ci<CASES.length-1){ci++;renderCard();}};
+
+/* ---------------- SPINE / CHANT ---------------- */
+const ladder=document.getElementById('ladder');
+function buildLadder(){
+  ladder.innerHTML="";
+  CHANT_GROUPS.forEach((g,gi)=>{
+    const grp=document.createElement('span'); grp.className="grp";
+    for(let i=g[0];i<g[1];i++){
+      const word=CHANT[i];
+      const r=document.createElement('button');
+      r.className="rung"; r.type="button"; r.dataset.idx=i;
+      // show suffix inline
+      const caseObj = CASES.find(c=>c.q===word);
+      r.innerHTML = word.replace('?','')+' <span class="sfx">'+(caseObj?caseObj.sfx:'')+'</span>';
+      r.onclick=()=>{
+        const idx = CASES.findIndex(c=>c.q===word);
+        if(idx>=0){ci=idx;renderCard();selectTab('mem');}
+      };
+      grp.appendChild(r);
+    }
+    ladder.appendChild(grp);
+    if(gi<CHANT_GROUPS.length-1){
+      const s=document.createElement('span'); s.className="slash"; s.textContent="/"; ladder.appendChild(s);
+    }
+  });
+}
+document.getElementById('runChant').onclick=()=>{
+  const rungs=[...ladder.querySelectorAll('.rung')];
+  rungs.forEach(r=>r.classList.remove('lit'));
+  const reduce = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(reduce){rungs.forEach(r=>r.classList.add('lit'));setTimeout(()=>rungs.forEach(r=>r.classList.remove('lit')),900);return;}
+  rungs.forEach((r,i)=>{
+    setTimeout(()=>{
+      r.classList.add('lit');
+      setTimeout(()=>r.classList.remove('lit'),360);
+    }, i*240);
+  });
+};
+
+/* ---------------- LAB ---------------- */
+let round=[], qi=0, score=0;
+const ROUND_SIZE=6;
+const labBody=document.getElementById('labBody');
+const scoreNum=document.getElementById('scoreNum'), scoreTot=document.getElementById('scoreTot'),
+      prog=document.getElementById('prog');
+scoreTot.textContent=ROUND_SIZE;
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function newRound(){
+  round=shuffle(POOL).slice(0,ROUND_SIZE); qi=0; score=0;
+  scoreNum.textContent=0; updateProg();
+  renderQ();
+}
+function updateProg(){prog.style.width=(qi/ROUND_SIZE*100)+"%";}
+
+function renderQ(){
+  if(qi>=ROUND_SIZE){return renderRoundEnd();}
+  const it=round[qi];
+  const opts=shuffle(it.opts);
+  labBody.innerHTML =
+    '<div class="prompt-card">'+
+      '<div class="build-this">Build in Basque</div>'+
+      '<div class="prompt-en">'+it.en+'</div>'+
+      '<div class="prompt-hint">Root given. Snap on the right ending.</div>'+
+      '<div class="workbench" id="wb">'+
+        '<span class="wb-root">'+it.root+'</span>'+
+        '<span class="seam"></span>'+
+        '<span class="wb-op">+</span>'+
+        '<span class="slot" id="slot">–?</span>'+
+      '</div>'+
+      '<div class="options" id="opts">'+
+        opts.map(o=>'<button class="opt" type="button" data-o="'+o+'">–'+o+'</button>').join('')+
+      '</div>'+
+      '<div class="reveal" id="reveal" hidden>'+
+        '<div class="reveal-form"><span>'+it.form+'</span><span class="qw">'+it.qw+'</span></div>'+
+        '<div class="reveal-en">'+it.root+' + –'+it.ans+' &nbsp;·&nbsp; '+it.hook+'</div>'+
+        '<button class="next-btn" id="nextQ" type="button">'+(qi===ROUND_SIZE-1?'See results ›':'Next ›')+'</button>'+
+      '</div>'+
+    '</div>';
+  const slot=document.getElementById('slot');
+  document.querySelectorAll('#opts .opt').forEach(btn=>{
+    btn.onclick=()=>{
+      const chosen=btn.dataset.o;
+      if(chosen===it.ans){
+        slot.textContent='–'+chosen; slot.classList.add('filled','good');
+        document.getElementById('wb').classList.add('fuse');
+        document.querySelectorAll('#opts .opt').forEach(b=>b.disabled=true);
+        score++; scoreNum.textContent=score;
+        document.getElementById('reveal').hidden=false;
+        document.getElementById('nextQ').onclick=()=>{qi++;updateProg();renderQ();};
+      }else{
+        btn.classList.add('wrong');
+        setTimeout(()=>btn.classList.remove('wrong'),360);
+      }
+    };
+  });
+}
+function renderRoundEnd(){
+  updateProg(); prog.style.width="100%";
+  let msg = score===ROUND_SIZE?"Clean sweep. The grid is yours.":
+            score>=ROUND_SIZE-1?"One slip — basically fluent.":
+            score>=ROUND_SIZE-3?"Solid. The place-grid distractors are the tricky bit.":
+            "Worth a re-run — drill the question words first.";
+  labBody.innerHTML =
+    '<div class="prompt-card roundend">'+
+      '<div class="big">'+score+'/'+ROUND_SIZE+'</div>'+
+      '<p style="color:var(--ink-soft);max-width:34ch;margin:8px auto 18px">'+msg+'</p>'+
+      '<button class="next-btn" id="again" type="button">Run another six ↻</button>'+
+    '</div>';
+  document.getElementById('again').onclick=newRound;
+}
+
+/* ---------------- REFERENCE ---------------- */
+function buildReference(){
+  const refBody=document.getElementById('refBody');
+  const tiers=[[1,"Tier 1 · core (the ergative hurdle)"],[2,"Tier 2 · relational (prepositions in disguise)"],[3,"Tier 3 · the place grid"],["x","Extra"]];
+  refBody.innerHTML = tiers.map(([t,label])=>{
+    const rows=CASES.filter(c=>c.tier===t).map(c=>
+      '<tr><td class="qcell">'+c.q+'</td><td class="scell">'+c.sfx+'</td>'+
+      '<td class="ecell">'+c.eng+'</td><td class="xcell">'+c.ex.form+'</td></tr>').join('');
+    return '<div class="reftier"><h3>'+label+'</h3><table class="ref"><tbody>'+rows+'</tbody></table></div>';
+  }).join('');
+}
+
+/* ---------------- TABS ---------------- */
+const tabs={mem:document.getElementById('tab-mem'),lab:document.getElementById('tab-lab'),ref:document.getElementById('tab-ref')};
+const panels={mem:document.getElementById('memoriser'),lab:document.getElementById('lab'),ref:document.getElementById('reference')};
+function selectTab(key){
+  for(const k in tabs){tabs[k].setAttribute('aria-selected',k===key);panels[k].hidden=(k!==key);}
+  if(key==='lab' && qi>=ROUND_SIZE) newRound();
+}
+tabs.mem.onclick=()=>selectTab('mem');
+tabs.lab.onclick=()=>{selectTab('lab'); if(!round.length)newRound();};
+tabs.ref.onclick=()=>selectTab('ref');
+
+/* ---------------- INIT ---------------- */
+buildLadder(); buildDots(); renderCard(); buildReference();
+</script>
+</body>
+</html>
