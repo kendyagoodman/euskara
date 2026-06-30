@@ -253,6 +253,11 @@
       <div class="prog-track"><div class="prog-fill" id="home-prog"></div></div>
       <div class="prog-label" id="home-prog-label">—</div>
     </div>
+    <div class="card tap-card" onclick="nav('caselab')">
+      <div class="kicker">Grammar · all units</div>
+      <h3>Kasu Laborategia — <em>Case Lab</em></h3>
+      <div class="sub">The Basque case system, demystified · question-word spine · flip-cards, build drills & a full reference grid</div>
+    </div>
     <div class="soon-card">Units 8, 9 … drop in here as we build them.</div>
     <div class="footer-note"><strong>Make it an app:</strong> open this page, tap Share → “Add to Home Screen”. Progress and your own memory hooks save on your device — back them up with ⛭.</div>
   </div>
@@ -374,6 +379,32 @@
     <div class="sp-options" id="sp-options"></div>
     <div id="sp-done" style="display:none"><p style="font-family:'Lora',serif;font-size:1.25rem;font-style:italic;margin:.5rem 0" id="sp-result"></p><button class="btn-primary" onclick="startSpeed()">Play again</button></div>
   </div></div>
+
+  <!-- CASE LAB -->
+  <div class="screen" id="screen-caselab">
+    <div class="hero"><h2>Kasu Laborategia</h2><p>Basque cases, demystified. Every case is named after its question word — learn the question, and you've learned the case.</p></div>
+    <div class="callout" style="margin-top:0">A case ending is just an English preposition glued onto the <em>end</em> of the word. <b class="bq">Bilbo</b> → <b class="bq">Bilbora</b> = "to Bilbao". The question word — <b class="bq">Nora?</b> "to where?" — <strong>is</strong> the memory hook.</div>
+    <div class="pills">
+      <button class="pill active" onclick="clTab(0,this)"><span class="pn">01</span>Memorise</button>
+      <button class="pill" onclick="clTab(1,this)"><span class="pn">02</span>Build</button>
+      <button class="pill" onclick="clTab(2,this)"><span class="pn">03</span>Reference</button>
+    </div>
+    <div class="subpanel active" id="cl-0">
+      <div class="legend"><h4>The question-word spine — tap one to flip its card</h4><div class="legend-grid" id="cl-chant"></div></div>
+      <div class="cards-grid" id="cl-cards"></div>
+    </div>
+    <div class="subpanel" id="cl-1">
+      <div class="game-card">
+        <div class="game-stat">Score <b id="cl-score">0</b> / <span id="cl-total">0</span></div>
+        <div class="bg-target">Build: <strong id="cl-target-en"></strong></div>
+        <div class="bg-slot empty" id="cl-slot"></div>
+        <div class="bg-tiles" id="cl-tiles"></div>
+        <div class="bg-feedback" id="cl-feedback"></div>
+        <div style="display:flex;gap:8px;justify-content:center"><button class="btn-ghost" onclick="clClear()">Clear</button><button class="btn-primary" onclick="clCheck()">Check</button></div>
+      </div>
+    </div>
+    <div class="subpanel" id="cl-2"><div id="cl-ref"></div></div>
+  </div>
 
   <!-- BACKUP -->
   <div class="screen" id="screen-backup">
@@ -636,8 +667,8 @@ function saveStore(){try{localStorage.setItem(STORE_KEY,JSON.stringify(mem));}ca
 loadStore();
 
 /* ============ NAV ============ */
-const titles={home:'<em>Euskara</em> · Basque',unit:'Unit 7',phases:'Lessons',phase:'Lesson',vocab:'Vocabulary',tools:'Grammar tools',flashcards:'Flashcards',match:'Match-up',build:'Build-the-word',speed:'Speed recall',backup:'Backup'};
-const backMap={unit:'home',phases:'unit',phase:'phases',vocab:'unit',tools:'unit',flashcards:'vocab',match:'vocab',build:'vocab',speed:'vocab',backup:'home'};
+const titles={home:'<em>Euskara</em> · Basque',unit:'Unit 7',phases:'Lessons',phase:'Lesson',vocab:'Vocabulary',tools:'Grammar tools',flashcards:'Flashcards',match:'Match-up',build:'Build-the-word',speed:'Speed recall',caselab:'<em>Kasu</em> · Case Lab',backup:'Backup'};
+const backMap={unit:'home',phases:'unit',phase:'phases',vocab:'unit',tools:'unit',flashcards:'vocab',match:'vocab',build:'vocab',speed:'vocab',caselab:'home',backup:'home'};
 let curScreen='home';
 function nav(s){
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
@@ -649,6 +680,7 @@ function nav(s){
   if(s==='flashcards'){document.getElementById('fcdir-produce').classList.toggle('active',fcDir==='produce');document.getElementById('fcdir-recognise').classList.toggle('active',fcDir==='recognise');renderFlash();}
   if(s==='build')startBuild();
   if(s==='home')updateHomeProgress();
+  if(s==='caselab')renderCaseLab();
   if(s==='vocab')updateFcProgText();
 }
 function goBack(){nav(backMap[curScreen]||'home');}
@@ -791,6 +823,95 @@ function finishSpeed(){document.getElementById('sp-word').style.display='none';d
 function exportData(){const blob=new Blob([JSON.stringify(mem,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='euskara-backup.json';a.click();URL.revokeObjectURL(url);document.getElementById('backup-msg').textContent='Backup downloaded.';}
 function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);mem=Object.assign({hooks:{},status:{},best:{match:null,speed:null},phasesDone:{}},d);saveStore();document.getElementById('backup-msg').textContent='Backup restored.';updateHomeProgress();}catch(err){const m=document.getElementById('backup-msg');m.style.color='var(--c-doer)';m.textContent='Could not read that file.';}};r.readAsText(f);}
 function resetAll(){if(confirm('Erase all saved progress and hooks on this device?')){mem={hooks:{},status:{},best:{match:null,speed:null},phasesDone:{}};saveStore();document.getElementById('backup-msg').textContent='All progress cleared.';updateHomeProgress();}}
+
+/* ============ CASE LAB ============ */
+const CL_CASES=[
+ {tier:'Core',q:'Nor?',qen:'who / what?',name:'Absolutive',suf:'-a / –',role:'the plain subject or object',ex:'etxea',exen:'the house',tag:'logic',hook:'The dictionary form + the article -a. The "zero" case everything else is built from.'},
+ {tier:'Core',q:'Nork?',qen:'who does it?',name:'Ergative',suf:'-(a)k',role:'the DOER, acting on something',ex:'etxeak',exen:'the house (does X)',tag:'link',hook:'The very -k you met in Unit 7 as the doer\u2019s "kicker". No object acted on → no -k.'},
+ {tier:'Core',q:'Nori?',qen:'to whom?',name:'Dative',suf:'-(a)ri',role:'the recipient — to / for whom',ex:'etxeari',exen:'to the house',tag:'hook',hook:'Nor-i and -ri both end in -i. Think "i" = the one who receives it.'},
+ {tier:'Relational',q:'Noren?',qen:'whose?',name:'Genitive',suf:'-(a)ren',role:'possession — whose',ex:'etxearen',exen:'the house\u2019s',tag:'hook',hook:'Noren? = "of whom". It owns the noun that follows.'},
+ {tier:'Relational',q:'Norentzat?',qen:'for whom?',name:'Benefactive',suf:'-(a)rentzat',role:'for someone\u2019s benefit',ex:'zuretzat',exen:'for you',tag:'hook',hook:'-rentzat = "for the benefit of". A gift is -rentzat someone.'},
+ {tier:'Relational',q:'Norekin?',qen:'with whom?',name:'Comitative',suf:'-(a)rekin',role:'accompaniment — with',ex:'lagunarekin',exen:'with the friend',tag:'hook',hook:'-kin sounds like English "kin" — the people you are WITH.'},
+ {tier:'Relational',q:'Zergatik?',qen:'why?',name:'Causal',suf:'-(a)gatik',role:'because of',ex:'zergatik',exen:'because of what (= why)',tag:'link',hook:'The question word Zergatik literally ENDS in -gatik. The word IS the suffix.'},
+ {tier:'Place',q:'Non?',qen:'where?',name:'Inessive',suf:'-(e)an / -n',role:'in / at a place',ex:'Bilbon',exen:'in Bilbao',tag:'link',hook:'Non / Nora / Nondik = where / whither / whence — the old English travel trio, in order.'},
+ {tier:'Place',q:'Nora?',qen:'to where?',name:'Allative',suf:'-(e)ra',role:'motion towards',ex:'Bilbora',exen:'to Bilbao',tag:'link',hook:'Nora = "whither". The -ra points the way TO somewhere.'},
+ {tier:'Place',q:'Nondik?',qen:'from where?',name:'Ablative',suf:'-(e)tik',role:'motion from / out of',ex:'Bilbotik',exen:'from Bilbao',tag:'link',hook:'Nondik = "whence". -tik = away FROM. (Same -tik in hemendik "from here".)'},
+ {tier:'Place',q:'Nongo?',qen:'of where?',name:'Locative-genitive',suf:'-(e)ko',role:'belonging to a place',ex:'Bilboko',exen:'of Bilbao',tag:'link',hook:'The same -ko describer you already used in euskarazko, eguzkitako. "Of-where".'},
+ {tier:'Extra',q:'…-ik?',qen:'any? none?',name:'Partitive',suf:'-(r)ik',role:'any / no — in questions & negatives',ex:'ardorik',exen:'any wine',tag:'link',hook:'You already drilled this in Unit 7: esnerik, kaferik, lanik. Exact same ending.'}
+];
+function renderCaseLab(){
+  const chant=['Nor?','Nork?','Nori?','Noren?','Norentzat?','Norekin?','Non?','Nora?','Nondik?'];
+  const cw=document.getElementById('cl-chant');cw.innerHTML='';
+  chant.forEach(q=>{const c=document.createElement('span');c.className='leg-chip bgfn-doer';c.style.color='var(--c-doer)';c.style.cursor='pointer';c.innerHTML='<span class="leg-dot" style="background:var(--c-doer)"></span>'+q;c.onclick=()=>{const idx=CL_CASES.findIndex(x=>x.q===q);const card=document.getElementById('cl-card-'+idx);if(card){card.classList.add('flipped');card.scrollIntoView({behavior:'smooth',block:'center'});}};cw.appendChild(c);});
+  const g=document.getElementById('cl-cards');g.innerHTML='';
+  const tagClass={link:'tag-link',logic:'tag-logic',hook:'tag-hook'};
+  const tagText={link:'real link',logic:'logic',hook:'memory aid'};
+  CL_CASES.forEach((c,i)=>{
+    const card=document.createElement('div');card.className='flip-card';card.id='cl-card-'+i;card.style.height='210px';
+    const back='<div style="text-align:left;width:100%">'
+      +'<div style="font-family:\'DM Mono\',monospace;font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.35rem">'+c.name+' · '+c.suf+'</div>'
+      +'<div style="font-size:.82rem;margin-bottom:.5rem">'+c.role+'</div>'
+      +'<div class="cmp-row"><span class="cmp-lang cmp-eu">EU</span><span class="cmp-text"><span class="eu-word">'+c.ex+'</span> — '+c.exen+'</span></div>'
+      +'<div class="fc-hook" style="margin-top:.55rem"><span class="hook-tag '+tagClass[c.tag]+'">'+tagText[c.tag]+'</span>'+c.hook+'</div></div>';
+    card.innerHTML='<div class="flip-inner"><div class="flip-face flip-front">'
+      +'<div class="fc-concept" style="font-size:1.45rem">'+c.q+'</div>'
+      +'<div style="font-size:.8rem;color:#C98A6F;margin:.2rem 0 .1rem">'+c.qen+'</div>'
+      +'<div class="fc-hint">'+c.tier+' · tap to flip</div></div>'
+      +'<div class="flip-face flip-back">'+back+'</div></div>';
+    card.onclick=()=>card.classList.toggle('flipped');
+    g.appendChild(card);
+  });
+  renderClRef();
+  clStart();
+}
+function renderClRef(){
+  const tiers=[
+   {name:'Core — the three that build a sentence',rows:[
+     ['Nor?','-a / –','etxea','the house (subject/object)'],
+     ['Nork?','-(a)k','etxeak','the house — as the doer'],
+     ['Nori?','-(a)ri','etxeari','to the house']]},
+   {name:'Relational — with / for / whose / why',rows:[
+     ['Noren?','-(a)ren','etxearen','the house\u2019s'],
+     ['Norentzat?','-(a)rentzat','zuretzat','for you'],
+     ['Norekin?','-(a)rekin','lagunarekin','with the friend'],
+     ['Zertaz?','-(a)z','honetaz','about this'],
+     ['Zergatik?','-(a)gatik','zergatik','because of']]},
+   {name:'Place — the where / whither / whence grid',rows:[
+     ['Non?','-(e)an / -n','Bilbon','in Bilbao'],
+     ['Nora?','-(e)ra','Bilbora','to Bilbao'],
+     ['Nondik?','-(e)tik','Bilbotik','from Bilbao'],
+     ['Noraino?','-(e)raino','Bilboraino','as far as Bilbao'],
+     ['Norako?','-(e)rako','Europarako','heading for Europe'],
+     ['Nongo?','-(e)ko','Bilboko','of Bilbao']]},
+   {name:'Extra — any / none',rows:[
+     ['…-ik?','-(r)ik','ardorik','any wine (questions & negatives)']]}
+  ];
+  let html='';
+  tiers.forEach(t=>{
+    html+='<p class="sec-title">'+t.name+'</p><table class="gt"><thead><tr><th>question</th><th>ending</th><th>example</th><th>=</th></tr></thead><tbody>';
+    t.rows.forEach(r=>{html+='<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td></tr>';});
+    html+='</tbody></table>';
+  });
+  html+='<div class="callout"><strong>Two you\u2019ve already met:</strong> the describer <b class="bq">-ko</b> (euskarazko, eguzkitako) is the same <b class="bq">Nongo?</b> ending; and <b class="bq">-rako</b> (entsaladarako, Europarako, atzerrirako) is the destinational case. Cases aren\u2019t new — you\u2019ve been using them since Unit 7.</div>';
+  document.getElementById('cl-ref').innerHTML=html;
+}
+const CL_BUILD=[
+ {en:'to Bilbao',tiles:['Bilbo','ra','tik','n'],answer:['Bilbo','ra']},
+ {en:'from Bilbao',tiles:['Bilbo','tik','ra','ko'],answer:['Bilbo','tik']},
+ {en:'in Bilbao',tiles:['Bilbo','n','ra','ko'],answer:['Bilbo','n']},
+ {en:'of Bilbao (Bilbao\u2019s)',tiles:['Bilbo','ko','tik','ra'],answer:['Bilbo','ko']},
+ {en:'with the friend',tiles:['lagun','a','rekin','ri'],answer:['lagun','a','rekin']},
+ {en:'to the friend (recipient)',tiles:['lagun','a','ri','k'],answer:['lagun','a','ri']},
+ {en:'the friend — as the doer',tiles:['lagun','a','k','ri'],answer:['lagun','a','k']},
+ {en:'any wine (none left)',tiles:['ardo','rik','a','ko'],answer:['ardo','rik']}
+];
+let clQueue=[],clCur=null,clSlot=[],clScore=0,clTotal=0;
+function clStart(){clQueue=[...CL_BUILD].sort(()=>Math.random()-.5);clScore=0;clTotal=0;document.getElementById('cl-score').textContent='0';document.getElementById('cl-total').textContent=clQueue.length;clNext();}
+function clNext(){if(clQueue.length===0){document.getElementById('cl-target-en').textContent='Done! '+clScore+'/'+clTotal;document.getElementById('cl-tiles').innerHTML='';document.getElementById('cl-slot').innerHTML='';document.getElementById('cl-slot').classList.add('empty');const fb=document.getElementById('cl-feedback');fb.textContent='Cases built. Eskerrik asko!';fb.className='bg-feedback ok';return;}clCur=clQueue.shift();clSlot=[];document.getElementById('cl-target-en').textContent=clCur.en;const fb=document.getElementById('cl-feedback');fb.textContent='';fb.className='bg-feedback';clRenderSlot();const tiles=document.getElementById('cl-tiles');tiles.innerHTML='';[...clCur.tiles].sort(()=>Math.random()-.5).forEach(tile=>{const b=document.createElement('button');b.className='bg-tile';b.textContent=tile;b.onclick=()=>{if(b.classList.contains('used'))return;clSlot.push(tile);b.classList.add('used');clRenderSlot();};tiles.appendChild(b);});}
+function clRenderSlot(){const slot=document.getElementById('cl-slot');slot.innerHTML='';slot.classList.toggle('empty',clSlot.length===0);clSlot.forEach((tile,i)=>{const s=document.createElement('span');s.className='morph fn-root';s.textContent=tile;s.onclick=()=>{clSlot.splice(i,1);const used=[...document.querySelectorAll('#cl-tiles .bg-tile.used')];const m=used.find(u=>u.textContent===tile);if(m)m.classList.remove('used');clRenderSlot();};slot.appendChild(s);});}
+function clClear(){clSlot=[];document.querySelectorAll('#cl-tiles .bg-tile').forEach(b=>b.classList.remove('used'));clRenderSlot();}
+function clCheck(){if(!clCur||clSlot.length===0)return;const fb=document.getElementById('cl-feedback');clTotal++;if(JSON.stringify(clSlot)===JSON.stringify(clCur.answer)){clScore++;fb.textContent='✓ '+clSlot.join('')+' — correct!';fb.className='bg-feedback ok';document.getElementById('cl-score').textContent=clScore;setTimeout(clNext,850);}else{fb.textContent='✗ not yet — tap a tile in the slot to remove it';fb.className='bg-feedback no';}}
+function clTab(i,btn){document.querySelectorAll('#screen-caselab .pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#screen-caselab .subpanel').forEach((p,idx)=>p.classList.toggle('active',idx===i));window.scrollTo(0,0);}
 
 /* ============ INIT ============ */
 renderTrackButtons();renderBuilder();renderAnatomy();renderCards();renderDecoder();updateHomeProgress();
