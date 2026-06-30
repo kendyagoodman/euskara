@@ -234,6 +234,18 @@
   .backup-row{display:flex;gap:8px}
   .footer-note{margin-top:1.5rem;padding:.9rem 1.1rem;background:var(--bg-card);border:.5px solid var(--border);border-radius:10px;font-size:.8rem;color:var(--ink-mid);line-height:1.6}
   .footer-note strong{color:var(--ink);font-weight:500}
+  /* compound-word breakdown */
+  .fc-face.fc-back{overflow-y:auto}
+  .bd-wrap{margin-top:.6rem;padding-top:.55rem;border-top:.5px dashed var(--border);width:100%}
+  .bd-head{font-family:'DM Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.09em;color:var(--ink-light);margin-bottom:.4rem;text-align:center}
+  .bd-strip{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:center;gap:3px}
+  .bd-part{display:inline-flex;flex-direction:column;align-items:center;background:var(--c-root-bg);border-radius:7px;padding:3px 8px}
+  .bd-part.suf{background:var(--c-gram-bg)}
+  .bd-p{font-family:'Lora',serif;font-style:italic;font-size:.9rem;color:var(--c-root);line-height:1.2}
+  .bd-part.suf .bd-p{color:var(--c-gram)}
+  .bd-g{font-family:'DM Mono',monospace;font-size:.5rem;color:var(--ink-mid);margin-top:2px;white-space:nowrap}
+  .bd-plus{align-self:center;color:var(--ink-light);font-size:.72rem;padding-bottom:6px}
+  .bd-note{font-size:.7rem;color:var(--ink-light);font-style:italic;margin-top:.45rem;text-align:center}
 </style>
 </head>
 <body>
@@ -783,6 +795,57 @@ function renderDecoder(){const w=document.getElementById('dec-rows');w.innerHTML
 function setNumber(n){curNum=n;document.getElementById('dec-one').classList.toggle('active',n==='one');document.getElementById('dec-many').classList.toggle('active',n==='many');renderDecoder();}
 function toolTab(i,btn){document.querySelectorAll('#screen-tools .pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('#screen-tools .subpanel').forEach((p,idx)=>p.classList.toggle('active',idx===i));window.scrollTo(0,0);}
 
+/* ============ COMPOUND BREAKDOWNS (settled etymologies only) ============ */
+const BREAKDOWNS={
+ "eguzkitako betaurrekoak":{parts:[["eguzki","sun"],["-tako","for"],["bet-","eye ‹ begi"],["aurre","front"],["-ko","of"],["-ak","plural"]],note:"betaurreko = literally 'the thing in front of the eyes'."},
+ "eguzkitako krema":{parts:[["eguzki","sun"],["-tako","for"],["krema","cream"]]},
+ "hortzetako pasta":{parts:[["hortz","tooth"],["-etako","for the"],["pasta","paste"]]},
+ "hortzetako zepilo":{parts:[["hortz","tooth"],["-etako","for the"],["zepilo","brush ‹ cepillo"]]},
+ "komuneko papera":{parts:[["komun","toilet"],["-eko","of the"],["paper","paper"],["-a","the"]]},
+ "hamaiketako":{parts:[["hamaika","eleven"],["-etako","of"]],note:"the mid-morning 'elevenses' snack."},
+ "aldameneko":{parts:[["aldamen","next door / the side"],["-eko","of"]]},
+ "liburudenda":{parts:[["liburu","book"],["denda","shop"]]},
+ "musikadenda":{parts:[["musika","music"],["denda","shop"]]},
+ "argidenda":{parts:[["argi","light"],["denda","shop"]]},
+ "supermerkatu":{parts:[["super-","super"],["merkatu","market"]]},
+ "egunkari":{parts:[["egun","day"],["-kari","-related noun"]],note:"a 'daily' (paper)."},
+ "idazle":{parts:[["idatz-","write ‹ idatzi"],["-le","doer"]],note:"'one who writes'."},
+ "jaialdi":{parts:[["jai","festival"],["aldi","period / spell"]]},
+ "hiztegi":{parts:[["hitz","word"],["-tegi","place / store"]],note:"a 'word-store'."},
+ "haragitegi":{parts:[["haragi","meat"],["-tegi","place"]]},
+ "arraindegi":{parts:[["arrain","fish"],["-degi","place"]]},
+ "okindegi":{parts:[["okin","baker"],["-degi","place"]],note:"okin itself = ogi 'bread' + -gin 'maker'."},
+ "gozotegi":{parts:[["gozo","sweet"],["-tegi","place"]]},
+ "izozkitegi":{parts:[["izozki","ice-cream"],["-tegi","place"]]},
+ "ardotegi":{parts:[["ardo","wine"],["-tegi","place"]]},
+ "edaritegi":{parts:[["edari","drink"],["-tegi","place"]],note:"edari = edan 'to drink' + -ari."},
+ "kafetegi":{parts:[["kafe","coffee"],["-tegi","place"]]},
+ "jatetxe":{parts:[["jate","eating ‹ jan"],["etxe","house"]],note:"an 'eating-house'."},
+ "erretegi":{parts:[["erre","to grill / burn"],["-tegi","place"]]},
+ "aroztegi":{parts:[["arotz","carpenter"],["-tegi","place"]]},
+ "burdindegi":{parts:[["burdin","iron"],["-degi","place"]]},
+ "zapategi":{parts:[["zapata","shoe ‹ zapata"],["-tegi","place"]]},
+ "ileapaindegi":{parts:[["ile","hair"],["apain-","do up ‹ apaindu"],["-degi","place"]]},
+ "oinetako":{parts:[["oin","foot"],["-etako","for the"]],note:"'(things) for the feet' = footwear."},
+ "izozki / helatu":{parts:[["izotz","ice"],["-ki","stuff / matter"]],note:"izozki = 'ice-stuff'. (helatu is the Spanish-style synonym.)"},
+ "ordutegi":{parts:[["ordu","hour"],["-tegi","collection"]],note:"a 'collection of hours' = timetable."},
+ "neguko ordutegia":{parts:[["negu","winter"],["-ko","of"],["ordutegi","timetable"],["-a","the"]]},
+ "udako ordutegia":{parts:[["uda","summer"],["-ko","of"],["ordutegi","timetable"],["-a","the"]]},
+ "euskarazko":{parts:[["euskaraz","in Basque"],["-ko","describer"]]},
+ "bokadilo / ogitarteko":{parts:[["ogi","bread"],["arte","between"],["-ko","of"]],note:"ogitarteko = 'the between-bread thing'. (bokadilo is the Spanish loan.)"},
+ "euskal musika":{parts:[["euskal","Basque ‹ euskara"],["musika","music"]]}
+};
+function breakdownHTML(bq){
+  const bd=BREAKDOWNS[bq];if(!bd)return '';
+  let strip='';
+  bd.parts.forEach((pr,i)=>{
+    if(i>0)strip+='<span class="bd-plus">+</span>';
+    const isSuf=pr[0].charAt(0)==='-';
+    strip+='<span class="bd-part'+(isSuf?' suf':'')+'"><span class="bd-p">'+pr[0]+'</span><span class="bd-g">'+pr[1]+'</span></span>';
+  });
+  return '<div class="bd-wrap"><div class="bd-head">word parts</div><div class="bd-strip">'+strip+'</div>'+(bd.note?'<div class="bd-note">'+bd.note+'</div>':'')+'</div>';
+}
+
 /* ============ FLASHCARDS ============ */
 const SECNAMES={D1:'Dialogue 1',Q:'Quantities',AN:'Any/none',FD:'Food',NF:'Non-food',D2:'Dialogue 2',BM:'Books & music',SH:'Shops & signs'};
 const SECTIONS=['D1','Q','AN','FD','NF','D2','BM','SH'];
@@ -790,7 +853,7 @@ let fcSection='D1',fcIndex=0,fcList=[],fcDir=(mem.fcDir||'produce');
 function setFcDir(dir){fcDir=dir;mem.fcDir=dir;saveStore();document.getElementById('fcdir-produce').classList.toggle('active',dir==='produce');document.getElementById('fcdir-recognise').classList.toggle('active',dir==='recognise');renderFlash();}
 function renderSectionBar(){const bar=document.getElementById('fc-sectionbar');bar.innerHTML='';SECTIONS.forEach(s=>{const b=document.createElement('button');b.className='fc-secbtn'+(s===fcSection?' active':'');b.textContent=SECNAMES[s];b.onclick=()=>{fcSection=s;fcIndex=0;renderFlash();};bar.appendChild(b);});}
 function cardKey(v){return v.bq+'|'+v.s;}
-function renderFlash(){renderSectionBar();fcList=VOCAB.filter(v=>v.s===fcSection);if(fcIndex>=fcList.length)fcIndex=0;const card=document.getElementById('fc-card');card.classList.remove('flipped');const v=fcList[fcIndex];const ft=document.getElementById('fc-front-text'),bt=document.getElementById('fc-back-text');if(fcDir==='produce'){ft.className='fc-en';ft.textContent=v.en;bt.className='fc-word';bt.textContent=v.bq;document.getElementById('fc-tap-hint').textContent='recall the Basque, then tap to check';}else{ft.className='fc-word';ft.textContent=v.bq;bt.className='fc-en';bt.textContent=v.en;document.getElementById('fc-tap-hint').textContent='recall the meaning, then tap to check';}const userHook=mem.hooks[cardKey(v)];let h='';if(v.hk){const tc={link:'tag-link',logic:'tag-logic',hook:'tag-hook'}[v.hk];const tt={link:'real link',logic:'logic',hook:'memory aid'}[v.hk];h+='<div><span class="hook-tag '+tc+'">'+tt+'</span>'+v.hook+'</div>';}if(userHook)h+='<div style="margin-top:.5rem"><span class="hook-tag tag-mine">yours</span>'+userHook+'</div>';document.getElementById('fc-hook').innerHTML=h;document.getElementById('hook-edit').value=userHook||'';const st=mem.status[cardKey(v)];const sh=st==='known'?'<span class="st-known">known</span>':(st==='learning'?'<span class="st-learning">learning</span>':'');document.getElementById('fc-status-front').innerHTML=sh;document.getElementById('fc-status-back').innerHTML=sh;document.getElementById('fc-counter').textContent=(fcIndex+1)+' / '+fcList.length;updateFcProgText();}
+function renderFlash(){renderSectionBar();fcList=VOCAB.filter(v=>v.s===fcSection);if(fcIndex>=fcList.length)fcIndex=0;const card=document.getElementById('fc-card');card.classList.remove('flipped');const v=fcList[fcIndex];const ft=document.getElementById('fc-front-text'),bt=document.getElementById('fc-back-text');if(fcDir==='produce'){ft.className='fc-en';ft.textContent=v.en;bt.className='fc-word';bt.textContent=v.bq;document.getElementById('fc-tap-hint').textContent='recall the Basque, then tap to check';}else{ft.className='fc-word';ft.textContent=v.bq;bt.className='fc-en';bt.textContent=v.en;document.getElementById('fc-tap-hint').textContent='recall the meaning, then tap to check';}const userHook=mem.hooks[cardKey(v)];let h='';if(v.hk){const tc={link:'tag-link',logic:'tag-logic',hook:'tag-hook'}[v.hk];const tt={link:'real link',logic:'logic',hook:'memory aid'}[v.hk];h+='<div><span class="hook-tag '+tc+'">'+tt+'</span>'+v.hook+'</div>';}if(userHook)h+='<div style="margin-top:.5rem"><span class="hook-tag tag-mine">yours</span>'+userHook+'</div>';h+=breakdownHTML(v.bq);document.getElementById('fc-hook').innerHTML=h;document.getElementById('hook-edit').value=userHook||'';const st=mem.status[cardKey(v)];const sh=st==='known'?'<span class="st-known">known</span>':(st==='learning'?'<span class="st-learning">learning</span>':'');document.getElementById('fc-status-front').innerHTML=sh;document.getElementById('fc-status-back').innerHTML=sh;document.getElementById('fc-counter').textContent=(fcIndex+1)+' / '+fcList.length;updateFcProgText();}
 function flipCard(){document.getElementById('fc-card').classList.toggle('flipped');}
 function nextCard(){fcIndex=(fcIndex+1)%fcList.length;renderFlash();}
 function prevCard(){fcIndex=(fcIndex-1+fcList.length)%fcList.length;renderFlash();}
